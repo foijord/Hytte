@@ -1135,6 +1135,7 @@
   "ridge": 4.14,
   "ridgeAxis": "w",
   "pitchDeg": 17.8,
+  "open": false,
   "onParcel": true,
   "footprint": [
    [
@@ -1190,9 +1191,9 @@
  {
   "id": "936839960:2",
   "type": "cabin",
-  "cE": 71422.45,
-  "cN": 6458100.26,
-  "w": 5.5,
+  "cE": 71422.4,
+  "cN": 6458100.41,
+  "w": 5.81,
   "d": 5.4,
   "angleDeg": -69.4,
   "base": 3.51,
@@ -1203,6 +1204,7 @@
   "ridge": 3.44,
   "ridgeAxis": "w",
   "pitchDeg": 17.8,
+  "open": true,
   "onParcel": true,
   "footprint": [
    [

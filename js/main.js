@@ -164,7 +164,7 @@ scene.add(buildingsGroup);
 let buildingsSource = 'generated';
 
 function normalizeRec(b) {
-  const rec = { overhang: 0, ...b };
+  const rec = { overhang: 0, open: false, ...b };
   if (rec.ridge == null || rec.flat == null) {   // legacy plain-box record
     rec.flat = true;
     rec.ridge = rec.height ?? 2.5;
@@ -241,16 +241,37 @@ function rebuildBuilding(group) {
   const color = wallColor(rec);
   const emissive = group.userData.selected ? 0x2a4d10 : 0x000000;
 
-  const walls = new THREE.Mesh(wallsGeometry(rec), new THREE.MeshStandardMaterial({
-    color, roughness: 0.85, metalness: 0.0, emissive,
-  }));
-  walls.userData.part = true;
-  group.add(walls);
-  const wallEdges = new THREE.LineSegments(
-    new THREE.EdgesGeometry(walls.geometry),
-    new THREE.LineBasicMaterial({ color: 0x1c2733 }));
-  wallEdges.userData.part = true;
-  group.add(wallEdges);
+  if (rec.open && !rec.flat) {
+    // outdoor roofed wing: corner posts instead of walls
+    const [W, D] = rec.ridgeAxis === 'd' ? [rec.d, rec.w] : [rec.w, rec.d];
+    const ov = rec.overhang;
+    const hw = Math.max(W / 2 - ov, 0.2);
+    const hd = Math.max(D / 2 - ov, 0.2);
+    const slope = (rec.ridge - rec.eave) / (D / 2);
+    const wallTop = Math.max(rec.eave + slope * ov, 0.3);
+    const postMat = new THREE.MeshStandardMaterial({
+      color, roughness: 0.85, metalness: 0.0, emissive,
+    });
+    for (const [px, pz] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.15, wallTop, 0.15), postMat);
+      const x = rec.ridgeAxis === 'd' ? pz : px;
+      const z = rec.ridgeAxis === 'd' ? -px : pz;
+      post.position.set(x, wallTop / 2, z);
+      post.userData.part = true;
+      group.add(post);
+    }
+  } else {
+    const walls = new THREE.Mesh(wallsGeometry(rec), new THREE.MeshStandardMaterial({
+      color, roughness: 0.85, metalness: 0.0, emissive,
+    }));
+    walls.userData.part = true;
+    group.add(walls);
+    const wallEdges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(walls.geometry),
+      new THREE.LineBasicMaterial({ color: 0x1c2733 }));
+    wallEdges.userData.part = true;
+    group.add(wallEdges);
+  }
 
   if (!rec.flat) {
     const roofColor = new THREE.Color(color).multiplyScalar(0.72);
@@ -306,6 +327,7 @@ function applyExcavation() {
     const z0 = m.originN - m.n0;
     for (const group of buildingsGroup.children) {
       const rec = group.userData.rec;
+      if (rec.open) continue;           // outdoor roofs keep the natural ground
       const ov = rec.flat ? 0 : rec.overhang;
       const hw = Math.max((rec.w * group.scale.x) / 2 - ov, 0.2) + m.res / 2;
       const hd = Math.max((rec.d * group.scale.z) / 2 - ov, 0.2) + m.res / 2;
@@ -567,6 +589,7 @@ function serialize() {
       ridgeAxis: rec.ridgeAxis,
       pitchDeg: +pitchDeg(rec).toFixed(1),
       overhang: +rec.overhang.toFixed(2),
+      open: rec.open,
       footprint: rec.footprint,
     };
   });

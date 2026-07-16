@@ -32,13 +32,14 @@ dom = tifffile.imread(os.path.join(ROOT, "data", "dom_25cm.tif"))
 # real construction. May replace the rect (cE/cN/w/d) and/or the roof;
 # heights are ABSOLUTE (NN2000), converted to base-relative when applied.
 # Per owner: the cabin's west section is two parallel wings of roughly
-# equal width whose roofs meet. The 10.8 m total depth is split into two
-# abutting 5.4 m rects, each centered near its LiDAR ridge line; ridges
-# parallel, 7.16 m vs 6.95 m absolute, both at the 17.8° pitch.
+# equal width whose roofs meet, west gable ends flush. The 10.8 m total
+# depth is split into two abutting 5.4 m rects, each centered near its
+# LiDAR ridge line (7.16 m vs 6.95 m absolute, both 17.8°). Wing :2 is an
+# OUTDOOR roofed wing: roof on posts, no walls ("open": True).
 MANUAL_PART = {
     "936839960:1": {"cE": 71428.92, "cN": 6458098.43, "d": 5.4,
                     "ridgeAbs": 7.16, "eaveAbs": 6.29, "ridgeAxis": "w", "pitchDeg": 17.8},
-    "936839960:2": {"cE": 71422.45, "cN": 6458100.26, "d": 5.4,
+    "936839960:2": {"cE": 71422.40, "cN": 6458100.41, "w": 5.81, "d": 5.4, "open": True,
                     "ridgeAbs": 6.95, "eaveAbs": 6.08, "ridgeAxis": "w", "pitchDeg": 17.8},
 }
 tr = Transformer.from_crs("EPSG:4326", "EPSG:25833", always_xy=True)
@@ -308,7 +309,8 @@ def main():
                 rd = o.get("d", rd)
                 roof = {"flat": False, "eave": round(o["eaveAbs"] - base, 2),
                         "ridge": round(o["ridgeAbs"] - base, 2),
-                        "ridgeAxis": o["ridgeAxis"], "pitchDeg": o["pitchDeg"]}
+                        "ridgeAxis": o["ridgeAxis"], "pitchDeg": o["pitchDeg"],
+                        "open": o.get("open", False)}
             else:
                 roof = fit_roof(rc, rw, rd, ra, base)
             out.append({
