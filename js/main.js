@@ -4,6 +4,11 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 
 // Scene axes: x = east, y = up (meters, NN2000), z = south.
 // Origin = address point (E 71428.47, N 6458099.03), see data/README.md.
+//
+// Buildings are parametric groups: walls (pentagon prism with gable ends,
+// inset by the roof overhang — footprints trace the roof edge) + saddle-roof
+// planes. rec fields: w, d (roof rect), eave, ridge (heights above base),
+// ridgeAxis 'w'|'d', overhang, flat.
 
 const status = document.getElementById('status');
 const selInfo = document.getElementById('selinfo');
@@ -22,12 +27,13 @@ camera.position.set(65, 45, 95);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(-10, 5, -5);
+controls.maxPolarAngle = Math.PI / 2 - 0.02;
+controls.enableDamping = true;
+
 // optional overrides: ?cam=x,y,z&tgt=x,y,z&labels=off&cut=off
 const q = new URLSearchParams(location.search);
 if (q.has('cam')) camera.position.fromArray(q.get('cam').split(',').map(Number));
 if (q.has('tgt')) controls.target.fromArray(q.get('tgt').split(',').map(Number));
-controls.maxPolarAngle = Math.PI / 2 - 0.02;
-controls.enableDamping = true;
 
 scene.add(new THREE.HemisphereLight(0xbfd7ff, 0x5c4f3d, 0.9));
 const sun = new THREE.DirectionalLight(0xfff1da, 1.8);
@@ -119,7 +125,7 @@ async function buildTerrain() {
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
     mat.map = tex;
   } else {
-    mat.color.setHex(0x76705f);   // ortho unavailable — untextured terrain
+    mat.color.setHex(0x76705f);
     console.warn('orthophoto failed to load, rendering untextured');
   }
   scene.add(new THREE.Mesh(geo, mat));
@@ -155,10 +161,122 @@ async function addParcel() {
 
 const buildingsGroup = new THREE.Group();
 scene.add(buildingsGroup);
-const unitBox = new THREE.BoxGeometry(1, 1, 1);
-const unitEdges = new THREE.EdgesGeometry(unitBox);
-
 let buildingsSource = 'generated';
+
+function normalizeRec(b) {
+  const rec = { overhang: 0, ...b };
+  if (rec.ridge == null || rec.flat == null) {   // legacy plain-box record
+    rec.flat = true;
+    rec.ridge = rec.height ?? 2.5;
+    rec.eave = rec.ridge;
+    rec.ridgeAxis = 'w';
+    rec.overhang = 0;
+  }
+  rec.footprint = rec.footprint ?? [];
+  return rec;
+}
+
+function wallColor(rec) {
+  return rec.type === 'deck' ? 0xb5885e : (rec.onParcel ? 0xe8913a : 0x9fb2c4);
+}
+
+function pitchDeg(rec, sy = 1, sx = 1, sz = 1) {
+  if (rec.flat) return 0;
+  const span = (rec.ridgeAxis === 'd' ? rec.w * sx : rec.d * sz) / 2;
+  return THREE.MathUtils.radToDeg(Math.atan((rec.ridge - rec.eave) * sy / span));
+}
+
+function wallsGeometry(rec) {
+  if (rec.flat) {
+    const g = new THREE.BoxGeometry(rec.w, rec.ridge, rec.d);
+    g.translate(0, rec.ridge / 2, 0);
+    return g;
+  }
+  // build with ridge along local x; W = extent along ridge, D across
+  const [W, D] = rec.ridgeAxis === 'd' ? [rec.d, rec.w] : [rec.w, rec.d];
+  const ov = rec.overhang;
+  const hw = Math.max(W / 2 - ov, 0.2);
+  const hd = Math.max(D / 2 - ov, 0.2);
+  const slope = (rec.ridge - rec.eave) / (D / 2);
+  const wallTop = Math.max(rec.eave + slope * ov, 0.3);
+  const shape = new THREE.Shape([
+    new THREE.Vector2(-hd, 0),
+    new THREE.Vector2(hd, 0),
+    new THREE.Vector2(hd, wallTop),
+    new THREE.Vector2(0, Math.max(rec.ridge - 0.02, wallTop)),
+    new THREE.Vector2(-hd, wallTop),
+  ]);
+  const g = new THREE.ExtrudeGeometry(shape, { depth: 2 * hw, bevelEnabled: false });
+  g.translate(0, 0, -hw);
+  if (rec.ridgeAxis !== 'd') g.rotateY(Math.PI / 2);  // profile to (z,y), extrusion to x
+  return g;
+}
+
+function roofGeometry(rec) {
+  const [W, D] = rec.ridgeAxis === 'd' ? [rec.d, rec.w] : [rec.w, rec.d];
+  const e = rec.eave, r = rec.ridge;
+  const verts = new Float32Array([
+    // south-facing plane
+    -W / 2, e, D / 2,   W / 2, e, D / 2,   W / 2, r, 0,
+    -W / 2, e, D / 2,   W / 2, r, 0,      -W / 2, r, 0,
+    // north-facing plane
+    -W / 2, r, 0,       W / 2, r, 0,       W / 2, e, -D / 2,
+    -W / 2, r, 0,       W / 2, e, -D / 2, -W / 2, e, -D / 2,
+  ]);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+  g.computeVertexNormals();
+  if (rec.ridgeAxis === 'd') g.rotateY(Math.PI / 2);
+  return g;
+}
+
+function rebuildBuilding(group) {
+  const rec = group.userData.rec;
+  for (const child of [...group.children]) {
+    if (!child.userData.part) continue;
+    group.remove(child);
+    child.geometry?.dispose();
+    child.material?.dispose();
+  }
+  const color = wallColor(rec);
+  const emissive = group.userData.selected ? 0x2a4d10 : 0x000000;
+
+  const walls = new THREE.Mesh(wallsGeometry(rec), new THREE.MeshStandardMaterial({
+    color, roughness: 0.85, metalness: 0.0, emissive,
+  }));
+  walls.userData.part = true;
+  group.add(walls);
+  const wallEdges = new THREE.LineSegments(
+    new THREE.EdgesGeometry(walls.geometry),
+    new THREE.LineBasicMaterial({ color: 0x1c2733 }));
+  wallEdges.userData.part = true;
+  group.add(wallEdges);
+
+  if (!rec.flat) {
+    const roofColor = new THREE.Color(color).multiplyScalar(0.72);
+    const roof = new THREE.Mesh(roofGeometry(rec), new THREE.MeshStandardMaterial({
+      color: roofColor, roughness: 0.9, metalness: 0.0, side: THREE.DoubleSide, emissive,
+    }));
+    roof.userData.part = true;
+    group.add(roof);
+    const roofEdges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(roof.geometry, 10),
+      new THREE.LineBasicMaterial({ color: 0x1c2733 }));
+    roofEdges.userData.part = true;
+    group.add(roofEdges);
+  }
+}
+
+function makeBuildingGroup(rec) {
+  const m = terrainMeta;
+  const group = new THREE.Group();
+  group.userData = { rec, isBuilding: true, label: null, selected: false };
+  group.position.set(rec.cE - m.originE, rec.base, m.originN - rec.cN);
+  group.rotation.y = THREE.MathUtils.degToRad(rec.angleDeg);
+  rebuildBuilding(group);
+  buildingsGroup.add(group);
+  return group;
+}
 
 async function addBuildings() {
   let list = null;
@@ -169,29 +287,14 @@ async function addBuildings() {
   } else {
     list = await (await fetch('web/buildings.json')).json();
   }
-  const m = terrainMeta;
-  for (const b of list) {
-    const color = b.type === 'deck' ? 0xb5885e : (b.onParcel ? 0xe8913a : 0x9fb2c4);
-    const mat = new THREE.MeshStandardMaterial({
-      color, roughness: 0.85, metalness: 0.0, transparent: true, opacity: 0.92,
-    });
-    const mesh = new THREE.Mesh(unitBox, mat);
-    mesh.scale.set(b.w, b.height, b.d);
-    mesh.position.set(b.cE - m.originE, b.base + b.height / 2, m.originN - b.cN);
-    mesh.rotation.y = THREE.MathUtils.degToRad(b.angleDeg);
-    mesh.userData = { id: b.id, type: b.type, onParcel: b.onParcel, footprint: b.footprint ?? [] };
-    const edges = new THREE.LineSegments(
-      unitEdges, new THREE.LineBasicMaterial({ color: 0x1c2733 }));
-    mesh.add(edges);
-    buildingsGroup.add(mesh);
-  }
+  for (const b of list) makeBuildingGroup(normalizeRec(b));
   return list.length;
 }
 
 // -------------------------------------------------- terrain excavation
 
-// Carve the terrain down to each box's base inside its footprint, so
-// buildings (and the under-deck storage) read as built into the slope.
+// Carve the terrain down to each building's base inside its wall footprint,
+// so buildings (and the under-deck storage) read as built into the slope.
 function applyExcavation() {
   if (!terrainGeo) return;
   const m = terrainMeta;
@@ -201,12 +304,14 @@ function applyExcavation() {
   if (excavateOn) {
     const x0 = m.e0 - m.originE;
     const z0 = m.originN - m.n0;
-    for (const mesh of buildingsGroup.children) {
-      const hw = mesh.scale.x / 2 + m.res / 2;
-      const hd = mesh.scale.z / 2 + m.res / 2;
-      const base = mesh.position.y - mesh.scale.y / 2;
-      const cos = Math.cos(mesh.rotation.y), sin = Math.sin(mesh.rotation.y);
-      const cx = mesh.position.x, cz = mesh.position.z;
+    for (const group of buildingsGroup.children) {
+      const rec = group.userData.rec;
+      const ov = rec.flat ? 0 : rec.overhang;
+      const hw = Math.max((rec.w * group.scale.x) / 2 - ov, 0.2) + m.res / 2;
+      const hd = Math.max((rec.d * group.scale.z) / 2 - ov, 0.2) + m.res / 2;
+      const base = group.position.y;
+      const cos = Math.cos(group.rotation.y), sin = Math.sin(group.rotation.y);
+      const cx = group.position.x, cz = group.position.z;
       const r = Math.hypot(hw, hd);
       const jmin = Math.max(0, Math.floor((cx - r - x0) / m.res));
       const jmax = Math.min(m.cols - 1, Math.ceil((cx + r - x0) / m.res));
@@ -235,25 +340,35 @@ function applyExcavation() {
 const labelGroup = new THREE.Group();
 scene.add(labelGroup);
 
-function labelText(mesh) {
-  return `${mesh.scale.x.toFixed(1)} × ${mesh.scale.z.toFixed(1)} m · h ${mesh.scale.y.toFixed(1)}`;
+function labelText(group) {
+  const rec = group.userData.rec;
+  const w = rec.w * group.scale.x;
+  const d = rec.d * group.scale.z;
+  if (rec.flat) return `${w.toFixed(1)} × ${d.toFixed(1)} m · h ${(rec.ridge * group.scale.y).toFixed(1)}`;
+  const pitch = pitchDeg(rec, group.scale.y, group.scale.x, group.scale.z);
+  return `${w.toFixed(1)} × ${d.toFixed(1)} m · ridge ${(rec.ridge * group.scale.y).toFixed(1)}` +
+         ` · eave ${(rec.eave * group.scale.y).toFixed(1)} · ${pitch.toFixed(0)}°`;
 }
 
-function positionLabel(mesh) {
-  const s = mesh.userData.label;
-  if (s) s.position.set(mesh.position.x, mesh.position.y + mesh.scale.y / 2 + 1.1, mesh.position.z);
+function positionLabel(group) {
+  const s = group.userData.label;
+  if (s) {
+    s.position.set(group.position.x,
+      group.position.y + group.userData.rec.ridge * group.scale.y + 1.2,
+      group.position.z);
+  }
 }
 
-function refreshLabel(mesh) {
-  const old = mesh.userData.label;
+function refreshLabel(group) {
+  const old = group.userData.label;
   if (old) {
     labelGroup.remove(old);
     old.material.map.dispose();
     old.material.dispose();
-    mesh.userData.label = null;
+    group.userData.label = null;
   }
-  if (!labelsOn || !mesh.userData.onParcel) return;
-  const text = labelText(mesh);
+  if (!labelsOn || !group.userData.rec.onParcel) return;
+  const text = labelText(group);
   const c = document.createElement('canvas');
   let ctx = c.getContext('2d');
   ctx.font = '600 30px system-ui, sans-serif';
@@ -276,31 +391,86 @@ function refreshLabel(mesh) {
   sprite.renderOrder = 10;
   const h = 1.3;
   sprite.scale.set(h * c.width / c.height, h, 1);
-  mesh.userData.label = sprite;
+  group.userData.label = sprite;
   labelGroup.add(sprite);
-  positionLabel(mesh);
+  positionLabel(group);
 }
 
 function refreshAllLabels() {
-  for (const mesh of buildingsGroup.children) refreshLabel(mesh);
+  for (const g of buildingsGroup.children) refreshLabel(g);
 }
 
 // ------------------------------------------------------- selection / editing
 
 const tc = new TransformControls(camera, renderer.domElement);
 tc.setSize(0.8);
-tc.addEventListener('dragging-changed', e => {
-  controls.enabled = !e.value;
-  if (!e.value) {                       // drag finished
-    applyExcavation();
-    if (selected) refreshLabel(selected);
-  }
-});
-tc.addEventListener('objectChange', () => {
-  updateSelInfo();
-  if (selected) positionLabel(selected);
-});
 scene.add(tc);
+
+// ridge handle: the roof-angle gizmo — drag vertically to change the pitch
+const ridgeHandle = new THREE.Mesh(
+  new THREE.SphereGeometry(0.35, 20, 14),
+  new THREE.MeshBasicMaterial({ color: 0xffe95c, depthTest: false, transparent: true, opacity: 0.95 }));
+ridgeHandle.renderOrder = 11;
+ridgeHandle.userData.isHandle = true;
+const tcRoof = new TransformControls(camera, renderer.domElement);
+tcRoof.setSize(0.55);
+tcRoof.showX = false;
+tcRoof.showZ = false;
+scene.add(tcRoof);
+
+let selected = null;
+const raycaster = new THREE.Raycaster();
+const downPos = new THREE.Vector2();
+
+function setEmissive(group, on) {
+  group.userData.selected = on;
+  for (const child of group.children) {
+    if (child.isMesh && child.userData.part) child.material.emissive.setHex(on ? 0x2a4d10 : 0x000000);
+  }
+}
+
+function attachRoofGizmo(group) {
+  const rec = group.userData.rec;
+  if (rec.flat) {
+    tcRoof.detach();
+    ridgeHandle.removeFromParent();
+    return;
+  }
+  ridgeHandle.position.set(0, rec.ridge, 0);
+  group.add(ridgeHandle);
+  tcRoof.attach(ridgeHandle);
+}
+
+function select(group) {
+  if (selected) setEmissive(selected, false);
+  selected = group;
+  if (group) {
+    setEmissive(group, true);
+    tc.attach(group);
+    attachRoofGizmo(group);
+  } else {
+    tc.detach();
+    tcRoof.detach();
+    ridgeHandle.removeFromParent();
+  }
+  updateSelInfo();
+}
+
+function updateSelInfo() {
+  if (!selected) {
+    selInfo.textContent = 'click a building to select · t/r/s: mode · g: gable · e/E: eave · o/O: overhang · d: duplicate · del: remove';
+    return;
+  }
+  const m = terrainMeta;
+  const rec = selected.userData.rec;
+  const e = (selected.position.x + m.originE).toFixed(1);
+  const n = (m.originN - selected.position.z).toFixed(1);
+  const dims = labelText(selected);
+  const roof = rec.flat ? '' : ` · overhang ${rec.overhang.toFixed(2)}`;
+  selInfo.textContent =
+    `#${rec.id} ${rec.type}${rec.onParcel ? ' (on parcel)' : ''} · ${dims}${roof} · ` +
+    `E ${e} N ${n} · ${THREE.MathUtils.radToDeg(selected.rotation.y).toFixed(0)}°`;
+}
 
 function setMode(mode) {
   tc.setMode(mode);
@@ -310,45 +480,62 @@ function setMode(mode) {
   tc.showY = true;
 }
 
-let selected = null;
-const raycaster = new THREE.Raycaster();
-const downPos = new THREE.Vector2();
-
-function select(mesh) {
-  if (selected) selected.material.emissive.setHex(0x000000);
-  selected = mesh;
-  if (mesh) {
-    mesh.material.emissive.setHex(0x2a4d10);
-    tc.attach(mesh);
-  } else {
-    tc.detach();
+tc.addEventListener('dragging-changed', e => {
+  controls.enabled = !e.value;
+  if (!e.value) {                       // drag finished
+    if (tc.mode === 'scale' && selected) {   // bake scale into the parameters
+      const rec = selected.userData.rec;
+      rec.w = Math.max(rec.w * selected.scale.x, 0.5);
+      rec.d = Math.max(rec.d * selected.scale.z, 0.5);
+      rec.eave = Math.max(rec.eave * selected.scale.y, 0.3);
+      rec.ridge = Math.max(rec.ridge * selected.scale.y, rec.eave + (rec.flat ? 0 : 0.1));
+      selected.scale.set(1, 1, 1);
+      rebuildBuilding(selected);
+      attachRoofGizmo(selected);
+    }
+    applyExcavation();
+    if (selected) refreshLabel(selected);
   }
+});
+tc.addEventListener('objectChange', () => {
+  markDirty();
   updateSelInfo();
-}
+  if (selected) {
+    refreshLabel(selected);             // live measurements while adjusting
+  }
+});
 
-function updateSelInfo() {
-  if (!selected) { selInfo.textContent = 'click a box to select · t/r/s: mode · d: duplicate · del: remove · esc: deselect'; return; }
-  const m = terrainMeta;
-  const u = selected.userData;
-  const e = (selected.position.x + m.originE).toFixed(1);
-  const n = (m.originN - selected.position.z).toFixed(1);
-  selInfo.textContent =
-    `#${u.id} ${u.type}${u.onParcel ? ' (on parcel)' : ''} · ` +
-    `${selected.scale.x.toFixed(1)}×${selected.scale.z.toFixed(1)}×${selected.scale.y.toFixed(1)} m · ` +
-    `E ${e} N ${n} · ${THREE.MathUtils.radToDeg(selected.rotation.y).toFixed(0)}°`;
-}
+tcRoof.addEventListener('dragging-changed', e => { controls.enabled = !e.value; });
+tcRoof.addEventListener('objectChange', () => {
+  if (!selected) return;
+  const rec = selected.userData.rec;
+  const span = (rec.ridgeAxis === 'd' ? rec.w : rec.d) / 2;
+  rec.ridge = THREE.MathUtils.clamp(ridgeHandle.position.y, rec.eave + 0.1, rec.eave + span * 1.8);
+  ridgeHandle.position.set(0, rec.ridge, 0);
+  rebuildBuilding(selected);
+  refreshLabel(selected);
+  updateSelInfo();
+  markDirty();
+});
 
 renderer.domElement.addEventListener('pointerdown', e => downPos.set(e.clientX, e.clientY));
 renderer.domElement.addEventListener('pointerup', e => {
-  if (tc.dragging || tc.axis) return;                       // interacting with gizmo
+  if (tc.dragging || tc.axis || tcRoof.dragging || tcRoof.axis) return;   // gizmo interaction
   if (downPos.distanceTo(new THREE.Vector2(e.clientX, e.clientY)) > 5) return; // orbit drag
   const ndc = new THREE.Vector2(
     (e.clientX / window.innerWidth) * 2 - 1,
     -(e.clientY / window.innerHeight) * 2 + 1,
   );
   raycaster.setFromCamera(ndc, camera);
-  const hits = raycaster.intersectObjects(buildingsGroup.children, false);
-  select(hits.length ? hits[0].object : null);
+  const hits = raycaster.intersectObjects(buildingsGroup.children, true);
+  let group = null;
+  for (const h of hits) {
+    if (h.object.userData.isHandle) return;   // clicked the roof gizmo
+    let o = h.object;
+    while (o && !o.userData.isBuilding) o = o.parent;
+    if (o) { group = o; break; }
+  }
+  select(group);
 });
 
 let customCount = 0;
@@ -358,23 +545,31 @@ function markDirty() {
   dirty = true;
   document.getElementById('save').textContent = 'save*';
 }
-tc.addEventListener('objectChange', markDirty);
 
 function serialize() {
   const m = terrainMeta;
-  return buildingsGroup.children.map(mesh => ({
-    id: mesh.userData.id,
-    type: mesh.userData.type,
-    onParcel: mesh.userData.onParcel,
-    cE: +(mesh.position.x + m.originE).toFixed(2),
-    cN: +(m.originN - mesh.position.z).toFixed(2),
-    w: +mesh.scale.x.toFixed(2),
-    d: +mesh.scale.z.toFixed(2),
-    height: +mesh.scale.y.toFixed(2),
-    base: +(mesh.position.y - mesh.scale.y / 2).toFixed(2),
-    angleDeg: +THREE.MathUtils.radToDeg(mesh.rotation.y).toFixed(1),
-    footprint: mesh.userData.footprint,
-  }));
+  return buildingsGroup.children.map(group => {
+    const rec = group.userData.rec;
+    return {
+      id: rec.id,
+      type: rec.type,
+      onParcel: rec.onParcel,
+      cE: +(group.position.x + m.originE).toFixed(2),
+      cN: +(m.originN - group.position.z).toFixed(2),
+      w: +rec.w.toFixed(2),
+      d: +rec.d.toFixed(2),
+      angleDeg: +THREE.MathUtils.radToDeg(group.rotation.y).toFixed(1),
+      base: +group.position.y.toFixed(2),
+      height: +rec.ridge.toFixed(2),
+      flat: rec.flat,
+      eave: +rec.eave.toFixed(2),
+      ridge: +rec.ridge.toFixed(2),
+      ridgeAxis: rec.ridgeAxis,
+      pitchDeg: +pitchDeg(rec).toFixed(1),
+      overhang: +rec.overhang.toFixed(2),
+      footprint: rec.footprint,
+    };
+  });
 }
 
 async function save() {
@@ -403,20 +598,62 @@ async function save() {
 
 function duplicateSelected() {
   if (!selected) return;
-  const copy = selected.clone();
-  copy.material = selected.material.clone();
-  copy.userData = {
-    ...selected.userData,
-    id: `custom:${++customCount}:${selected.userData.id}`,
-    footprint: [],
-    label: null,
-  };
-  copy.position.x += 3;
-  copy.position.z += 3;
-  buildingsGroup.add(copy);
-  refreshLabel(copy);
+  const m = terrainMeta;
+  const rec = structuredClone(selected.userData.rec);
+  rec.id = `custom:${++customCount}:${rec.id}`;
+  rec.footprint = [];
+  rec.cE = selected.position.x + m.originE + 3;
+  rec.cN = m.originN - selected.position.z - 3;
+  rec.base = selected.position.y;
+  rec.angleDeg = THREE.MathUtils.radToDeg(selected.rotation.y);
+  const group = makeBuildingGroup(rec);
+  refreshLabel(group);
   applyExcavation();
-  select(copy);
+  select(group);
+  markDirty();
+}
+
+function nudgeOverhang(delta) {
+  if (!selected || selected.userData.rec.flat) return;
+  const rec = selected.userData.rec;
+  rec.overhang = THREE.MathUtils.clamp(rec.overhang + delta, 0, 1.5);
+  rebuildBuilding(selected);
+  applyExcavation();
+  refreshLabel(selected);
+  updateSelInfo();
+  markDirty();
+}
+
+function nudgeEave(delta) {
+  if (!selected || selected.userData.rec.flat) return;
+  const rec = selected.userData.rec;
+  rec.eave = THREE.MathUtils.clamp(rec.eave + delta, 0.3, rec.ridge - 0.1);
+  rebuildBuilding(selected);
+  refreshLabel(selected);
+  updateSelInfo();
+  markDirty();
+}
+
+function toggleGable() {
+  if (!selected) return;
+  const rec = selected.userData.rec;
+  if (rec.type === 'deck') return;
+  if (rec.flat) {
+    rec.flat = false;
+    rec.ridgeAxis = rec.w >= rec.d ? 'w' : 'd';
+    const span = (rec.ridgeAxis === 'd' ? rec.w : rec.d) / 2;
+    rec.eave = rec.ridge;                              // old box top becomes the eave
+    rec.ridge = rec.eave + span * Math.tan(THREE.MathUtils.degToRad(25));
+    if (!rec.overhang) rec.overhang = 0.4;
+  } else {
+    rec.flat = true;
+    rec.eave = rec.ridge;
+  }
+  rebuildBuilding(selected);
+  attachRoofGizmo(selected);
+  applyExcavation();
+  refreshLabel(selected);
+  updateSelInfo();
   markDirty();
 }
 
@@ -426,14 +663,18 @@ window.addEventListener('keydown', e => {
   if (e.key === 'r') setMode('rotate');
   if (e.key === 's') setMode('scale');
   if (e.key === 'd') duplicateSelected();
+  if (e.key === 'g') toggleGable();
+  if (e.key === 'o') nudgeOverhang(-0.05);
+  if (e.key === 'O') nudgeOverhang(0.05);
+  if (e.key === 'e') nudgeEave(-0.1);
+  if (e.key === 'E') nudgeEave(0.1);
   if (e.key === 'Escape') select(null);
   if ((e.key === 'Delete' || e.key === 'Backspace') && selected) {
     const dead = selected;
     select(null);
-    dead.userData.onParcel = false;     // drop its label
+    dead.userData.rec.onParcel = false;   // drop its label
     refreshLabel(dead);
     buildingsGroup.remove(dead);
-    dead.material.dispose();
     applyExcavation();
     markDirty();
   }

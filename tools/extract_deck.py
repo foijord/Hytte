@@ -143,6 +143,12 @@ for k, (rc, rw, rd, ra) in enumerate(rects):
         "angleDeg": round(float(np.degrees(ra)), 1),
         "base": round(ground, 2),
         "height": round(top - ground, 2),
+        "flat": True,
+        "eave": round(top - ground, 2),
+        "ridge": round(top - ground, 2),
+        "ridgeAxis": "w",
+        "pitchDeg": 0.0,
+        "overhang": 0.0,
         "onParcel": bool(point_in_poly(rc[0], rc[1], parcel_ring)),
         "footprint": [],
     })

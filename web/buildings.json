@@ -8,7 +8,13 @@
   "d": 2.84,
   "angleDeg": -35.2,
   "base": 0.91,
-  "height": 3.02,
+  "height": 3.06,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.3,
+  "ridge": 3.06,
+  "ridgeAxis": "w",
+  "pitchDeg": 27.9,
   "onParcel": false,
   "footprint": [
    [
@@ -39,6 +45,12 @@
   "angleDeg": 2.3,
   "base": 4.23,
   "height": 6.31,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 4.59,
+  "ridge": 4.59,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -101,6 +113,12 @@
   "angleDeg": 2.3,
   "base": 2.55,
   "height": 4.89,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 4.74,
+  "ridge": 4.74,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -163,6 +181,12 @@
   "angleDeg": 2.3,
   "base": 5.17,
   "height": 3.24,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.02,
+  "ridge": 3.02,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -225,6 +249,12 @@
   "angleDeg": -12.8,
   "base": 7.57,
   "height": 4.84,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 4.77,
+  "ridge": 4.77,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -295,6 +325,12 @@
   "angleDeg": -12.8,
   "base": 8.31,
   "height": 6.22,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 5.06,
+  "ridge": 5.06,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -365,6 +401,12 @@
   "angleDeg": -12.8,
   "base": 8.95,
   "height": 8.79,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 7.89,
+  "ridge": 7.89,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -434,7 +476,13 @@
   "d": 6.86,
   "angleDeg": 63.7,
   "base": 3.53,
-  "height": 3.79,
+  "height": 3.92,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.37,
+  "ridge": 3.92,
+  "ridgeAxis": "w",
+  "pitchDeg": 24.3,
   "onParcel": false,
   "footprint": [
    [
@@ -465,6 +513,12 @@
   "angleDeg": 80.9,
   "base": 14.6,
   "height": 3.94,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.92,
+  "ridge": 3.92,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -519,6 +573,12 @@
   "angleDeg": -25.8,
   "base": 7.71,
   "height": 10.3,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 8.27,
+  "ridge": 8.27,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -581,6 +641,12 @@
   "angleDeg": -6.2,
   "base": 6.03,
   "height": 3.68,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.7,
+  "ridge": 3.58,
+  "ridgeAxis": "w",
+  "pitchDeg": 17.7,
   "onParcel": false,
   "footprint": [
    [
@@ -659,6 +725,12 @@
   "angleDeg": 83.8,
   "base": 5.61,
   "height": 4.07,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.96,
+  "ridge": 3.93,
+  "ridgeAxis": "w",
+  "pitchDeg": 18.9,
   "onParcel": false,
   "footprint": [
    [
@@ -737,6 +809,12 @@
   "angleDeg": -6.2,
   "base": 6.3,
   "height": 6.9,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 6.26,
+  "ridge": 6.26,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -815,6 +893,12 @@
   "angleDeg": 4.5,
   "base": 0.97,
   "height": 4.02,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.89,
+  "ridge": 3.89,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -845,6 +929,12 @@
   "angleDeg": 83.1,
   "base": 14.9,
   "height": 4.28,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 3.13,
+  "ridge": 4.23,
+  "ridgeAxis": "w",
+  "pitchDeg": 14.1,
   "onParcel": false,
   "footprint": [
    [
@@ -882,7 +972,13 @@
   "d": 2.9,
   "angleDeg": 35.7,
   "base": 1.03,
-  "height": 2.75,
+  "height": 2.8,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.14,
+  "ridge": 2.8,
+  "ridgeAxis": "w",
+  "pitchDeg": 24.3,
   "onParcel": false,
   "footprint": [
    [
@@ -929,6 +1025,12 @@
   "angleDeg": -54.3,
   "base": 1.8,
   "height": 2.2,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 1.88,
+  "ridge": 1.88,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -975,6 +1077,12 @@
   "angleDeg": -79.3,
   "base": 3.12,
   "height": 3.75,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.75,
+  "ridge": 3.75,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -1020,7 +1128,13 @@
   "d": 6.8,
   "angleDeg": -69.4,
   "base": 3.02,
-  "height": 4.09,
+  "height": 4.14,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 3.05,
+  "ridge": 4.14,
+  "ridgeAxis": "w",
+  "pitchDeg": 17.8,
   "onParcel": true,
   "footprint": [
    [
@@ -1083,6 +1197,12 @@
   "angleDeg": -69.4,
   "base": 3.51,
   "height": 3.48,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.44,
+  "ridge": 3.44,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": true,
   "footprint": [
    [
@@ -1144,7 +1264,13 @@
   "d": 4.3,
   "angleDeg": -69.4,
   "base": 4.11,
-  "height": 2.7,
+  "height": 2.79,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 1.78,
+  "ridge": 2.79,
+  "ridgeAxis": "d",
+  "pitchDeg": 24.3,
   "onParcel": true,
   "footprint": [
    [
@@ -1206,7 +1332,13 @@
   "d": 3.6,
   "angleDeg": -41.7,
   "base": 0.24,
-  "height": 2.8,
+  "height": 2.85,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.1,
+  "ridge": 2.85,
+  "ridgeAxis": "w",
+  "pitchDeg": 22.7,
   "onParcel": true,
   "footprint": [
    [
@@ -1236,7 +1368,13 @@
   "d": 3.52,
   "angleDeg": 63.6,
   "base": 3.74,
-  "height": 2.85,
+  "height": 2.94,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 1.71,
+  "ridge": 2.94,
+  "ridgeAxis": "w",
+  "pitchDeg": 34.8,
   "onParcel": false,
   "footprint": [
    [
@@ -1266,7 +1404,13 @@
   "d": 6.86,
   "angleDeg": 74.6,
   "base": 16.72,
-  "height": 4.24,
+  "height": 4.38,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.78,
+  "ridge": 4.38,
+  "ridgeAxis": "w",
+  "pitchDeg": 24.9,
   "onParcel": false,
   "footprint": [
    [
@@ -1296,7 +1440,13 @@
   "d": 8.53,
   "angleDeg": -80.6,
   "base": 1.71,
-  "height": 4.22,
+  "height": 4.31,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 3.05,
+  "ridge": 4.31,
+  "ridgeAxis": "w",
+  "pitchDeg": 16.4,
   "onParcel": false,
   "footprint": [
    [
@@ -1326,7 +1476,13 @@
   "d": 5.17,
   "angleDeg": 12.1,
   "base": 0.61,
-  "height": 4.54,
+  "height": 4.78,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 1.97,
+  "ridge": 4.78,
+  "ridgeAxis": "w",
+  "pitchDeg": 47.3,
   "onParcel": false,
   "footprint": [
    [
@@ -1357,6 +1513,12 @@
   "angleDeg": 1.1,
   "base": 9.7,
   "height": 3.52,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 1.81,
+  "ridge": 3.49,
+  "ridgeAxis": "w",
+  "pitchDeg": 30.2,
   "onParcel": false,
   "footprint": [
    [
@@ -1403,6 +1565,12 @@
   "angleDeg": 1.1,
   "base": 9.73,
   "height": 6.08,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.61,
+  "ridge": 3.61,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -1448,7 +1616,13 @@
   "d": 2.79,
   "angleDeg": 10.7,
   "base": 1.21,
-  "height": 9.38,
+  "height": 9.4,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 9.4,
+  "ridge": 9.4,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -1479,6 +1653,12 @@
   "angleDeg": 86.0,
   "base": 7.31,
   "height": 3.39,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.39,
+  "ridge": 3.39,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -1508,7 +1688,13 @@
   "d": 4.4,
   "angleDeg": -4.7,
   "base": 7.31,
-  "height": 3.59,
+  "height": 3.6,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.6,
+  "ridge": 3.6,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -1538,7 +1724,13 @@
   "d": 6.22,
   "angleDeg": -27.3,
   "base": 1.02,
-  "height": 3.41,
+  "height": 3.42,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.42,
+  "ridge": 3.42,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -1568,7 +1760,13 @@
   "d": 6.44,
   "angleDeg": -77.7,
   "base": 0.23,
-  "height": 4.39,
+  "height": 4.6,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 1.7,
+  "ridge": 4.6,
+  "ridgeAxis": "w",
+  "pitchDeg": 42.0,
   "onParcel": false,
   "footprint": [
    [
@@ -1630,7 +1828,13 @@
   "d": 4.9,
   "angleDeg": -41.1,
   "base": 3.11,
-  "height": 4.62,
+  "height": 4.73,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 3.48,
+  "ridge": 4.73,
+  "ridgeAxis": "w",
+  "pitchDeg": 27.1,
   "onParcel": true,
   "footprint": [
    [
@@ -1660,7 +1864,13 @@
   "d": 6.52,
   "angleDeg": -85.4,
   "base": 14.74,
-  "height": 5.33,
+  "height": 5.41,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 3.92,
+  "ridge": 5.41,
+  "ridgeAxis": "w",
+  "pitchDeg": 24.7,
   "onParcel": false,
   "footprint": [
    [
@@ -1691,6 +1901,12 @@
   "angleDeg": 13.3,
   "base": 4.81,
   "height": 4.08,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 4.06,
+  "ridge": 4.06,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -1777,6 +1993,12 @@
   "angleDeg": -76.7,
   "base": 5.44,
   "height": 3.38,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.42,
+  "ridge": 3.29,
+  "ridgeAxis": "w",
+  "pitchDeg": 17.2,
   "onParcel": false,
   "footprint": [
    [
@@ -1863,6 +2085,12 @@
   "angleDeg": 13.3,
   "base": 4.01,
   "height": 3.96,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 3.04,
+  "ridge": 3.89,
+  "ridgeAxis": "d",
+  "pitchDeg": 16.1,
   "onParcel": false,
   "footprint": [
    [
@@ -1949,6 +2177,12 @@
   "angleDeg": 13.3,
   "base": 3.96,
   "height": 3.94,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.82,
+  "ridge": 3.82,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -2034,7 +2268,13 @@
   "d": 6.84,
   "angleDeg": 31.7,
   "base": 0.93,
-  "height": 5.42,
+  "height": 5.61,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.34,
+  "ridge": 5.61,
+  "ridgeAxis": "w",
+  "pitchDeg": 43.7,
   "onParcel": false,
   "footprint": [
    [
@@ -2065,6 +2305,12 @@
   "angleDeg": -7.0,
   "base": 2.44,
   "height": 6.06,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 4.05,
+  "ridge": 5.61,
+  "ridgeAxis": "w",
+  "pitchDeg": 28.7,
   "onParcel": false,
   "footprint": [
    [
@@ -2203,6 +2449,12 @@
   "angleDeg": 83.0,
   "base": 3.55,
   "height": 4.27,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.71,
+  "ridge": 4.26,
+  "ridgeAxis": "w",
+  "pitchDeg": 33.3,
   "onParcel": false,
   "footprint": [
    [
@@ -2341,6 +2593,12 @@
   "angleDeg": -7.0,
   "base": 1.74,
   "height": 4.64,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 4.08,
+  "ridge": 4.08,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -2479,6 +2737,12 @@
   "angleDeg": -7.0,
   "base": 3.3,
   "height": 4.29,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 4.01,
+  "ridge": 4.01,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -2617,6 +2881,12 @@
   "angleDeg": 83.0,
   "base": 3.28,
   "height": 4.01,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.47,
+  "ridge": 3.99,
+  "ridgeAxis": "d",
+  "pitchDeg": 32.4,
   "onParcel": false,
   "footprint": [
    [
@@ -2755,6 +3025,12 @@
   "angleDeg": -7.0,
   "base": 2.46,
   "height": 3.44,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.24,
+  "ridge": 3.24,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -2892,7 +3168,13 @@
   "d": 6.85,
   "angleDeg": 77.4,
   "base": 1.07,
-  "height": 5.59,
+  "height": 5.75,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.94,
+  "ridge": 5.75,
+  "ridgeAxis": "w",
+  "pitchDeg": 39.3,
   "onParcel": false,
   "footprint": [
    [
@@ -2922,7 +3204,13 @@
   "d": 11.28,
   "angleDeg": 48.8,
   "base": 12.0,
-  "height": 4.36,
+  "height": 4.37,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 4.37,
+  "ridge": 4.37,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -2969,6 +3257,12 @@
   "angleDeg": -84.4,
   "base": 16.21,
   "height": 3.75,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.75,
+  "ridge": 3.75,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -3014,7 +3308,13 @@
   "d": 8.2,
   "angleDeg": -44.7,
   "base": 14.57,
-  "height": 7.82,
+  "height": 7.86,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 7.86,
+  "ridge": 7.86,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -3049,6 +3349,12 @@
   "angleDeg": -44.7,
   "base": 14.86,
   "height": 6.31,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 6.1,
+  "ridge": 6.1,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -3083,6 +3389,12 @@
   "angleDeg": 45.3,
   "base": 16.26,
   "height": 5.54,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 4.61,
+  "ridge": 5.41,
+  "ridgeAxis": "d",
+  "pitchDeg": 21.4,
   "onParcel": false,
   "footprint": [
    [
@@ -3117,6 +3429,12 @@
   "angleDeg": 45.3,
   "base": 14.23,
   "height": 5.73,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 5.54,
+  "ridge": 5.54,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -3150,7 +3468,13 @@
   "d": 8.9,
   "angleDeg": 55.0,
   "base": 16.0,
-  "height": 5.47,
+  "height": 5.58,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 3.24,
+  "ridge": 5.58,
+  "ridgeAxis": "w",
+  "pitchDeg": 27.7,
   "onParcel": false,
   "footprint": [
    [
@@ -3196,7 +3520,13 @@
   "d": 6.5,
   "angleDeg": 55.0,
   "base": 16.15,
-  "height": 4.45,
+  "height": 4.54,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.97,
+  "ridge": 4.54,
+  "ridgeAxis": "d",
+  "pitchDeg": 24.3,
   "onParcel": false,
   "footprint": [
    [
@@ -3242,7 +3572,13 @@
   "d": 12.1,
   "angleDeg": 51.5,
   "base": 19.83,
-  "height": 5.67,
+  "height": 5.88,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 1.81,
+  "ridge": 5.88,
+  "ridgeAxis": "w",
+  "pitchDeg": 33.9,
   "onParcel": false,
   "footprint": [
    [
@@ -3280,7 +3616,13 @@
   "d": 7.36,
   "angleDeg": -23.3,
   "base": 6.9,
-  "height": 3.8,
+  "height": 3.91,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.32,
+  "ridge": 3.91,
+  "ridgeAxis": "w",
+  "pitchDeg": 23.3,
   "onParcel": false,
   "footprint": [
    [
@@ -3311,6 +3653,12 @@
   "angleDeg": 80.3,
   "base": 12.45,
   "height": 7.61,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 6.69,
+  "ridge": 6.69,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -3349,6 +3697,12 @@
   "angleDeg": 14.6,
   "base": 7.53,
   "height": 4.41,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 4.3,
+  "ridge": 4.3,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -3378,7 +3732,13 @@
   "d": 7.02,
   "angleDeg": -6.8,
   "base": 0.76,
-  "height": 4.39,
+  "height": 4.42,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 4.42,
+  "ridge": 4.42,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -3428,7 +3788,13 @@
   "d": 7.69,
   "angleDeg": -25.4,
   "base": 7.81,
-  "height": 4.89,
+  "height": 5.01,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 3.44,
+  "ridge": 5.01,
+  "ridgeAxis": "w",
+  "pitchDeg": 22.2,
   "onParcel": false,
   "footprint": [
    [
@@ -3458,7 +3824,13 @@
   "d": 6.5,
   "angleDeg": -40.4,
   "base": 20.7,
-  "height": 5.06,
+  "height": 5.11,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 3.94,
+  "ridge": 5.11,
+  "ridgeAxis": "w",
+  "pitchDeg": 19.7,
   "onParcel": false,
   "footprint": [
    [
@@ -3532,7 +3904,13 @@
   "d": 5.1,
   "angleDeg": 49.6,
   "base": 20.15,
-  "height": 5.6,
+  "height": 5.62,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 4.39,
+  "ridge": 5.62,
+  "ridgeAxis": "w",
+  "pitchDeg": 25.8,
   "onParcel": false,
   "footprint": [
    [
@@ -3606,7 +3984,13 @@
   "d": 6.36,
   "angleDeg": -7.7,
   "base": 0.42,
-  "height": 5.46,
+  "height": 5.67,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.24,
+  "ridge": 5.67,
+  "ridgeAxis": "w",
+  "pitchDeg": 47.1,
   "onParcel": false,
   "footprint": [
    [
@@ -3652,7 +4036,13 @@
   "d": 6.3,
   "angleDeg": -35.9,
   "base": 6.55,
-  "height": 4.57,
+  "height": 4.86,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.87,
+  "ridge": 4.86,
+  "ridgeAxis": "w",
+  "pitchDeg": 32.3,
   "onParcel": false,
   "footprint": [
    [
@@ -3690,7 +4080,13 @@
   "d": 7.0,
   "angleDeg": 78.9,
   "base": 10.41,
-  "height": 4.25,
+  "height": 4.33,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.83,
+  "ridge": 4.33,
+  "ridgeAxis": "w",
+  "pitchDeg": 23.2,
   "onParcel": false,
   "footprint": [
    [
@@ -3752,7 +4148,13 @@
   "d": 5.7,
   "angleDeg": -11.1,
   "base": 10.67,
-  "height": 3.71,
+  "height": 3.87,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.39,
+  "ridge": 3.87,
+  "ridgeAxis": "w",
+  "pitchDeg": 27.5,
   "onParcel": false,
   "footprint": [
    [
@@ -3815,6 +4217,12 @@
   "angleDeg": 78.9,
   "base": 11.32,
   "height": 5.45,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.53,
+  "ridge": 3.53,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -3877,6 +4285,12 @@
   "angleDeg": 78.9,
   "base": 10.97,
   "height": 3.4,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.39,
+  "ridge": 3.39,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -3939,6 +4353,12 @@
   "angleDeg": 15.8,
   "base": 6.37,
   "height": 5.84,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 5.84,
+  "ridge": 5.84,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -3993,6 +4413,12 @@
   "angleDeg": 15.8,
   "base": 7.43,
   "height": 4.45,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 4.29,
+  "ridge": 4.29,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -4046,7 +4472,13 @@
   "d": 2.1,
   "angleDeg": 15.8,
   "base": 6.08,
-  "height": 5.19,
+  "height": 5.44,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.55,
+  "ridge": 5.44,
+  "ridgeAxis": "d",
+  "pitchDeg": 37.7,
   "onParcel": false,
   "footprint": [
    [
@@ -4101,6 +4533,12 @@
   "angleDeg": 82.0,
   "base": 12.69,
   "height": 5.67,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 3.81,
+  "ridge": 5.52,
+  "ridgeAxis": "w",
+  "pitchDeg": 32.3,
   "onParcel": false,
   "footprint": [
    [
@@ -4154,7 +4592,13 @@
   "d": 3.8,
   "angleDeg": -8.0,
   "base": 13.38,
-  "height": 4.13,
+  "height": 4.25,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.87,
+  "ridge": 4.25,
+  "ridgeAxis": "w",
+  "pitchDeg": 35.9,
   "onParcel": false,
   "footprint": [
    [
@@ -4209,6 +4653,12 @@
   "angleDeg": 82.0,
   "base": 13.3,
   "height": 3.81,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 3.53,
+  "ridge": 3.53,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -4262,7 +4712,13 @@
   "d": 2.6,
   "angleDeg": -8.0,
   "base": 13.04,
-  "height": 4.34,
+  "height": 4.43,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 4.43,
+  "ridge": 4.43,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -4317,6 +4773,12 @@
   "angleDeg": -6.8,
   "base": 0.9,
   "height": 7.43,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 6.71,
+  "ridge": 6.71,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -4351,6 +4813,12 @@
   "angleDeg": 16.5,
   "base": 0.89,
   "height": 4.11,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 4.01,
+  "ridge": 4.01,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -4401,6 +4869,12 @@
   "angleDeg": 1.8,
   "base": 5.53,
   "height": 11.27,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 11.18,
+  "ridge": 11.18,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -4471,6 +4945,12 @@
   "angleDeg": -19.4,
   "base": 0.73,
   "height": 6.44,
+  "overhang": 0.0,
+  "flat": true,
+  "eave": 6.28,
+  "ridge": 6.28,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
   "onParcel": false,
   "footprint": [
    [
@@ -4516,7 +4996,13 @@
   "d": 8.32,
   "angleDeg": 84.8,
   "base": 6.66,
-  "height": 4.13,
+  "height": 4.4,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.1,
+  "ridge": 4.4,
+  "ridgeAxis": "d",
+  "pitchDeg": 27.8,
   "onParcel": false,
   "footprint": [
    [
@@ -4554,7 +5040,13 @@
   "d": 3.99,
   "angleDeg": -18.1,
   "base": 1.02,
-  "height": 3.01,
+  "height": 3.08,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.29,
+  "ridge": 3.08,
+  "ridgeAxis": "w",
+  "pitchDeg": 21.4,
   "onParcel": false,
   "footprint": [
    [
@@ -4585,6 +5077,12 @@
   "angleDeg": 10.8,
   "base": 7.94,
   "height": 3.48,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 1.76,
+  "ridge": 3.38,
+  "ridgeAxis": "w",
+  "pitchDeg": 30.8,
   "onParcel": false,
   "footprint": [
    [
@@ -4631,6 +5129,12 @@
   "angleDeg": -86.7,
   "base": 6.12,
   "height": 7.31,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 3.64,
+  "ridge": 7.0,
+  "ridgeAxis": "w",
+  "pitchDeg": 46.0,
   "onParcel": false,
   "footprint": [
    [
@@ -4669,6 +5173,12 @@
   "angleDeg": 20.6,
   "base": 2.11,
   "height": 1.38,
+  "flat": true,
+  "eave": 1.38,
+  "ridge": 1.38,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
+  "overhang": 0.0,
   "onParcel": true,
   "footprint": []
  }

@@ -197,6 +197,50 @@ def sample_terrain(poly_en):
     return base, max(roof - base, 2.2)
 
 
+def fit_roof(center, w, d, ang, base):
+    """Fit a saddle-roof model to the DOM inside an oriented rect.
+
+    Tries ridge-along-w, ridge-along-d and flat; keeps the model with the
+    lowest RMSE. Returns dict with eave/ridge heights above base (eave at
+    the roof edge — footprints trace the roof outline), ridge axis, pitch.
+    """
+    r = np.hypot(w, d) / 2 + 1
+    j0 = max(0, int((center[0] - r - XMIN) / RES))
+    j1 = min(2399, int((center[0] + r - XMIN) / RES))
+    i0 = max(0, int((YMAX - center[1] - r) / RES))
+    i1 = min(2399, int((YMAX - center[1] + r) / RES))
+    jj, ii = np.meshgrid(np.arange(j0, j1 + 1), np.arange(i0, i1 + 1))
+    es = XMIN + (jj + 0.5) * RES - center[0]
+    ns = YMAX - (ii + 0.5) * RES - center[1]
+    c, s = np.cos(-ang), np.sin(-ang)
+    u = es * c - ns * s
+    v = es * s + ns * c
+    inside = (np.abs(u) < w / 2 - 0.35) & (np.abs(v) < d / 2 - 0.35)
+    zs = dom[i0:i1 + 1, j0:j1 + 1][inside]
+    flat_h = float(np.percentile(zs, 95)) - base if zs.size else 2.2
+    flat_fit = {"flat": True, "eave": round(max(flat_h, 0.5), 2),
+                "ridge": round(max(flat_h, 0.5), 2), "ridgeAxis": "w", "pitchDeg": 0.0}
+    if zs.size < 25:
+        return flat_fit
+    flat_rmse = float(zs.std())
+    best = None
+    for axis, coord, half in (("w", np.abs(v[inside]), d / 2), ("d", np.abs(u[inside]), w / 2)):
+        A = np.column_stack([np.ones_like(coord), coord])
+        (a, b), *_ = np.linalg.lstsq(A, zs, rcond=None)
+        rmse = float(np.sqrt(((zs - (a + b * coord)) ** 2).mean()))
+        pitch = float(np.degrees(np.arctan(-b)))
+        if b < 0 and 8.0 <= pitch <= 55.0 and (best is None or rmse < best["rmse"]):
+            best = {"axis": axis, "a": a, "b": b, "half": half, "rmse": rmse, "pitch": pitch}
+    if best is None or best["rmse"] > 0.85 * flat_rmse:
+        return flat_fit
+    ridge = float(best["a"]) - base
+    eave = float(best["a"] + best["b"] * best["half"]) - base
+    eave = max(eave, 0.3)
+    ridge = max(ridge, eave + 0.2)
+    return {"flat": False, "eave": round(eave, 2), "ridge": round(ridge, 2),
+            "ridgeAxis": best["axis"], "pitchDeg": round(best["pitch"], 1)}
+
+
 def rect_corners(center, w, d, ang):
     c, s = np.cos(ang), np.sin(ang)
     hw, hd = w / 2, d / 2
@@ -242,6 +286,7 @@ def main():
             if st is None:
                 continue
             base, height = st
+            roof = fit_roof(rc, rw, rd, ra, base)
             out.append({
                 "id": f"{el['id']}:{k+1}" if len(rects) > 1 else el["id"],
                 "type": tags.get("building", "yes"),
@@ -251,7 +296,9 @@ def main():
                 "d": round(float(rd), 2),
                 "angleDeg": round(float(np.degrees(ra)), 1),
                 "base": round(base, 2),
-                "height": round(height, 2),
+                "height": round(max(height, roof["ridge"]), 2),
+                "overhang": 0.0 if roof["flat"] else 0.4,
+                **roof,
                 "onParcel": point_in_poly(rc[0], rc[1], parcel_ring),
                 "footprint": [[round(float(e), 2), round(float(n), 2)] for e, n in pts],
             })
@@ -270,8 +317,9 @@ def main():
     print(f"{len(out)} boxes written ({n_multi} buildings decomposed, {skipped} skipped)")
     print(f"on parcel 437/109: {len(on_parcel)}")
     for b in on_parcel:
-        print(f"  {b['id']} {b['type']}: {b['w']}x{b['d']} m, h={b['height']} m, "
-              f"base={b['base']} m, angle={b['angleDeg']}")
+        roof = ("flat" if b.get("flat", True) else
+                f"ridge {b['ridge']}m eave {b['eave']}m pitch {b['pitchDeg']}° along {b['ridgeAxis']}")
+        print(f"  {b['id']} {b['type']}: {b['w']}x{b['d']} m, base={b['base']} m, {roof}")
 
 
 if __name__ == "__main__":

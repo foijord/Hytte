@@ -9,6 +9,12 @@
   "angleDeg": 20.6,
   "base": 2.11,
   "height": 1.38,
+  "flat": true,
+  "eave": 1.38,
+  "ridge": 1.38,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
+  "overhang": 0.0,
   "onParcel": true,
   "footprint": []
  }
