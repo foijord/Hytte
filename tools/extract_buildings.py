@@ -31,13 +31,15 @@ dom = tifffile.imread(os.path.join(ROOT, "data", "dom_25cm.tif"))
 # Part overrides where the automatic decomposition/fit doesn't match the
 # real construction. May replace the rect (cE/cN/w/d) and/or the roof;
 # heights are ABSOLUTE (NN2000), converted to base-relative when applied.
-# 936839960:2: the wing roof is connected to the main wing roof and spans
-# the full main-wing width (6.8 m) from the wing's outer edge inward, ridge
-# parallel to and 0.2 m below the main ridge, same 17.8° pitch (per owner
-# and the DOM profile: surface peaks 6.95 m ~1.2 m in from the shared edge).
+# Per owner: the cabin's west section is two parallel wings of roughly
+# equal width whose roofs meet. The 10.8 m total depth is split into two
+# abutting 5.4 m rects, each centered near its LiDAR ridge line; ridges
+# parallel, 7.16 m vs 6.95 m absolute, both at the 17.8° pitch.
 MANUAL_PART = {
-    "936839960:2": {"cE": 71423.11, "cN": 6458100.51, "d": 6.8,
-                    "ridgeAbs": 6.95, "eaveAbs": 5.86, "ridgeAxis": "w", "pitchDeg": 17.8},
+    "936839960:1": {"cE": 71428.92, "cN": 6458098.43, "d": 5.4,
+                    "ridgeAbs": 7.16, "eaveAbs": 6.29, "ridgeAxis": "w", "pitchDeg": 17.8},
+    "936839960:2": {"cE": 71422.45, "cN": 6458100.26, "d": 5.4,
+                    "ridgeAbs": 6.95, "eaveAbs": 6.08, "ridgeAxis": "w", "pitchDeg": 17.8},
 }
 tr = Transformer.from_crs("EPSG:4326", "EPSG:25833", always_xy=True)
 
