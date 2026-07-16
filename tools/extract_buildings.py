@@ -39,8 +39,12 @@ dom = tifffile.imread(os.path.join(ROOT, "data", "dom_25cm.tif"))
 MANUAL_PART = {
     "936839960:1": {"cE": 71428.92, "cN": 6458098.43, "d": 5.4,
                     "ridgeAbs": 7.16, "eaveAbs": 6.29, "ridgeAxis": "w", "pitchDeg": 17.8},
+    # eave matches the main wing eave (6.29) so the roofs meet at the shared
+    # line; that pitch (13.7°) also reproduces the LiDAR 6.30 at the outer
+    # edge. Back wall at the road-facing (SW, flush) gable end.
     "936839960:2": {"cE": 71422.40, "cN": 6458100.41, "w": 5.81, "d": 5.4, "open": True,
-                    "ridgeAbs": 6.95, "eaveAbs": 6.08, "ridgeAxis": "w", "pitchDeg": 17.8},
+                    "backWall": "ridge-",
+                    "ridgeAbs": 6.95, "eaveAbs": 6.29, "ridgeAxis": "w", "pitchDeg": 13.7},
 }
 tr = Transformer.from_crs("EPSG:4326", "EPSG:25833", always_xy=True)
 
@@ -310,7 +314,8 @@ def main():
                 roof = {"flat": False, "eave": round(o["eaveAbs"] - base, 2),
                         "ridge": round(o["ridgeAbs"] - base, 2),
                         "ridgeAxis": o["ridgeAxis"], "pitchDeg": o["pitchDeg"],
-                        "open": o.get("open", False)}
+                        "open": o.get("open", False),
+                        "backWall": o.get("backWall")}
             else:
                 roof = fit_roof(rc, rw, rd, ra, base)
             out.append({

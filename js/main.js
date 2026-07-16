@@ -164,7 +164,7 @@ scene.add(buildingsGroup);
 let buildingsSource = 'generated';
 
 function normalizeRec(b) {
-  const rec = { overhang: 0, open: false, ...b };
+  const rec = { overhang: 0, open: false, backWall: null, ...b };
   if (rec.ridge == null || rec.flat == null) {   // legacy plain-box record
     rec.flat = true;
     rec.ridge = rec.height ?? 2.5;
@@ -259,6 +259,28 @@ function rebuildBuilding(group) {
       post.position.set(x, wallTop / 2, z);
       post.userData.part = true;
       group.add(post);
+    }
+    if (rec.backWall === 'ridge-' || rec.backWall === 'ridge+') {
+      // gable-end wall (full pentagon profile, thin slab)
+      const shape = new THREE.Shape([
+        new THREE.Vector2(-hd, 0),
+        new THREE.Vector2(hd, 0),
+        new THREE.Vector2(hd, wallTop),
+        new THREE.Vector2(0, Math.max(rec.ridge - 0.02, wallTop)),
+        new THREE.Vector2(-hd, wallTop),
+      ]);
+      const g = new THREE.ExtrudeGeometry(shape, { depth: 0.15, bevelEnabled: false });
+      if (rec.ridgeAxis !== 'd') g.rotateY(Math.PI / 2);   // slab thickness along the ridge axis
+      const off = rec.backWall === 'ridge-' ? -hw : hw - 0.15;
+      if (rec.ridgeAxis !== 'd') g.translate(off, 0, 0);
+      else g.translate(0, 0, off);
+      const wall = new THREE.Mesh(g, postMat.clone());
+      wall.userData.part = true;
+      group.add(wall);
+      const we = new THREE.LineSegments(
+        new THREE.EdgesGeometry(g), new THREE.LineBasicMaterial({ color: 0x1c2733 }));
+      we.userData.part = true;
+      group.add(we);
     }
   } else {
     const walls = new THREE.Mesh(wallsGeometry(rec), new THREE.MeshStandardMaterial({
@@ -590,6 +612,7 @@ function serialize() {
       pitchDeg: +pitchDeg(rec).toFixed(1),
       overhang: +rec.overhang.toFixed(2),
       open: rec.open,
+      backWall: rec.backWall,
       footprint: rec.footprint,
     };
   });

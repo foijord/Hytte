@@ -1136,6 +1136,7 @@
   "ridgeAxis": "w",
   "pitchDeg": 17.8,
   "open": false,
+  "backWall": null,
   "onParcel": true,
   "footprint": [
    [
@@ -1200,11 +1201,12 @@
   "height": 3.48,
   "overhang": 0.4,
   "flat": false,
-  "eave": 2.57,
+  "eave": 2.78,
   "ridge": 3.44,
   "ridgeAxis": "w",
-  "pitchDeg": 17.8,
+  "pitchDeg": 13.7,
   "open": true,
+  "backWall": "ridge-",
   "onParcel": true,
   "footprint": [
    [
