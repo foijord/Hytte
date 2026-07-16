@@ -1197,12 +1197,12 @@
   "angleDeg": -69.4,
   "base": 3.51,
   "height": 3.48,
-  "overhang": 0.0,
-  "flat": true,
-  "eave": 3.44,
+  "overhang": 0.4,
+  "flat": false,
+  "eave": 2.8,
   "ridge": 3.44,
   "ridgeAxis": "w",
-  "pitchDeg": 0.0,
+  "pitchDeg": 17.8,
   "onParcel": true,
   "footprint": [
    [

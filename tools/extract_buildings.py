@@ -27,6 +27,15 @@ MAX_PARTS = 6
 
 dtm = tifffile.imread(os.path.join(ROOT, "data", "dtm_25cm.tif"))
 dom = tifffile.imread(os.path.join(ROOT, "data", "dom_25cm.tif"))
+
+# Roof overrides for parts where the automatic fit fails. Heights are
+# ABSOLUTE (NN2000) and converted to base-relative when applied.
+# 936839960:2 sits where two roof planes of the Z-shaped cabin meet; the
+# DOM profile shows a cross-gable at the main wing's 17.8° pitch:
+# constant along the 5.5 m axis, falling 6.95 -> 6.30 across it.
+MANUAL_ROOF_ABS = {
+    "936839960:2": {"ridgeAbs": 6.95, "eaveAbs": 6.31, "ridgeAxis": "w", "pitchDeg": 17.8},
+}
 tr = Transformer.from_crs("EPSG:4326", "EPSG:25833", always_xy=True)
 
 parcel = json.load(open(os.path.join(ROOT, "data", "property_437_109.geojson"), encoding="utf-8"))
@@ -286,9 +295,15 @@ def main():
             if st is None:
                 continue
             base, height = st
+            part_id = f"{el['id']}:{k+1}" if len(rects) > 1 else el["id"]
             roof = fit_roof(rc, rw, rd, ra, base)
+            if part_id in MANUAL_ROOF_ABS:
+                o = MANUAL_ROOF_ABS[part_id]
+                roof = {"flat": False, "eave": round(o["eaveAbs"] - base, 2),
+                        "ridge": round(o["ridgeAbs"] - base, 2),
+                        "ridgeAxis": o["ridgeAxis"], "pitchDeg": o["pitchDeg"]}
             out.append({
-                "id": f"{el['id']}:{k+1}" if len(rects) > 1 else el["id"],
+                "id": part_id,
                 "type": tags.get("building", "yes"),
                 "cE": round(float(rc[0]), 2),
                 "cN": round(float(rc[1]), 2),
