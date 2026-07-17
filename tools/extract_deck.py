@@ -131,7 +131,12 @@ while len(rects) < MAX_PARTS and work.sum() > 0.12 * total:
     center = (rxc * cb - ryc * sb, rxc * sb + ryc * cb)
     rects.append((center, rw, rd, ra))
 
+# preserve manually added structures (e.g. the jetty) across regeneration
+extras_path = os.path.join(ROOT, "data", "extra_structures.json")
 extras = []
+if os.path.exists(extras_path):
+    with open(extras_path, encoding="utf-8") as f:
+        extras = [r for r in json.load(f) if not str(r["id"]).startswith("deck")]
 for k, (rc, rw, rd, ra) in enumerate(rects):
     extras.append({
         "id": f"deck:{k+1}" if len(rects) > 1 else "deck",

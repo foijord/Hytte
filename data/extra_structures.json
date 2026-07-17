@@ -17,5 +17,25 @@
   "overhang": 0.0,
   "onParcel": true,
   "footprint": []
+ },
+ {
+  "id": "jetty",
+  "type": "deck",
+  "cE": 71418.0,
+  "cN": 6458131.62,
+  "w": 6.5,
+  "d": 5.25,
+  "angleDeg": -1.6,
+  "base": 0.0,
+  "height": 0.7,
+  "flat": true,
+  "eave": 0.7,
+  "ridge": 0.7,
+  "ridgeAxis": "w",
+  "pitchDeg": 0.0,
+  "overhang": 0.0,
+  "open": true,
+  "onParcel": true,
+  "footprint": []
  }
 ]
