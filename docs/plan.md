@@ -6,7 +6,7 @@ valuation ~8.5 M. Scope: replace the ~60 m² main cabin + outdoor wing + deck wi
 ~19 m² concrete storage/tech room under the new 8×3 m deck. The annex and the
 naust stay. Kit assembled by local tradesmen (owner as byggherre).
 Planning budget **~3.1–3.2 M kr** (range 2.8–4.5 M). 3D model:
-https://foijord.github.io/Hytte/ (`?new=1` shows the new build).*
+https://foijord.github.io/hytte/ (`?new=1` shows the new build).*
 
 **The one rule that outranks everything: the old cabin stays standing until the
 strandsone dispensation and building permit are granted.** The legal basis is

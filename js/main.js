@@ -23,10 +23,10 @@ scene.background = new THREE.Color(0x0b1420);
 scene.fog = new THREE.Fog(0x0b1420, 800, 2500);
 
 const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.5, 5000);
-camera.position.set(65, 45, 95);
+camera.position.set(16, 13, -62);   // from the sea, north-east of the cabin
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(-10, 5, -5);
+controls.target.set(-2, 5, 0);
 controls.maxPolarAngle = Math.PI / 2 - 0.02;
 controls.enableDamping = true;
 
@@ -41,6 +41,7 @@ sun.position.set(-150, 260, 180);
 scene.add(sun);
 
 let terrainMeta = null;
+let terrainMesh = null;
 let heightGrid = null;      // original heights, used for draping the parcel line
 let terrainGeo = null;
 let originalHeights = null;
@@ -136,7 +137,8 @@ async function buildTerrain() {
     mat.color.setHex(0x76705f);
     console.warn('orthophoto failed to load, rendering untextured');
   }
-  scene.add(new THREE.Mesh(geo, mat));
+  terrainMesh = new THREE.Mesh(geo, mat);
+  scene.add(terrainMesh);
 }
 
 function addWater() {
@@ -608,6 +610,24 @@ renderer.domElement.addEventListener('pointerup', e => {
     if (o && o.visible) { group = o; break; }
   }
   select(group);
+});
+
+// double-click terrain or a building to move the orbit point there
+renderer.domElement.addEventListener('dblclick', e => {
+  const ndc = new THREE.Vector2(
+    (e.clientX / window.innerWidth) * 2 - 1,
+    -(e.clientY / window.innerHeight) * 2 + 1,
+  );
+  raycaster.setFromCamera(ndc, camera);
+  const targets = terrainMesh ? [terrainMesh, ...buildingsGroup.children] : buildingsGroup.children;
+  for (const h of raycaster.intersectObjects(targets, true)) {
+    if (h.object.userData.isHandle) continue;
+    let o = h.object;
+    while (o && !o.userData.isBuilding) o = o.parent;
+    if (o && !o.visible) continue;              // hidden old/new-build variant
+    controls.target.copy(h.point);
+    break;
+  }
 });
 
 let customCount = 0;
