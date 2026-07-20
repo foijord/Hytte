@@ -3,12 +3,12 @@ docs/floorplan.svg (dimensioned concept plan of the Furutangen layout).
 
 Each design in DESIGNS gets, auto-fitted to its cabin:
   - a grey concrete slab (0.35 m plinth flush with the walls),
-  - a leveled terraform pad (1.5 m apron on the sides and road end,
-    finished ground GROUND_STEP below slab top) - the viewer levels the
-    terrain to it with a wide smooth transition in all directions,
-  - the deck/storage: same width as the pad, connected to its sea edge,
-    deck surface flush with the pad, concrete storage room below
+  - the deck/storage: same width as the slab, connected to the sea wall,
+    deck surface GROUND_STEP below slab top, concrete storage room below
     (STORAGE_H headroom).
+No auto-leveling pad: natural rock meets the slab (minst mulig
+terrenginngrep for the dispensation); place manual pads in the viewer
+where targeted leveling is wanted.
 Gable window wall toward the sea on the old sea-facade line, centered on
 the old deck position. Slab top at 3.55 NN2000 (old deck top + 0.06).
 """
@@ -34,8 +34,7 @@ PITCH = 30.0
 WALL_H = 2.8
 OVERHANG = 0.6
 STORAGE_H = 1.9            # m, under-deck room headroom
-PAD_MARGIN = 1.5           # m, leveled apron beyond the walls (sides + road end)
-GROUND_STEP = 0.06         # m, finished ground and deck sit this far below slab top
+GROUND_STEP = 0.06         # m, the deck surface sits this far below slab top
 DECK_D = 3.0               # m, deck depth in front of the sea wall
 WALL_EXT = 0.25            # exterior wall thickness (floor plan)
 PART = 0.15                # interior partition thickness (floor plan)
@@ -102,34 +101,25 @@ def main():
                    base, eave, ridge, pitch, overhang=ov,
                    variant=variant, variantLabel=label)
 
-    def fit_ground(cabin, L, W, setback=0.0):
-        """Auto-fit to the cabin: a leveled terraform pad around it (1.5 m
-        apron on the sides and road end, ground just below slab top), and the
-        deck/storage - same width as the pad, connected to its sea edge,
-        deck surface flush with the pad."""
+    def fit_deck(cabin, W, setback=0.0):
+        """Deck/storage auto-fit: same width as the slab, connected to the
+        sea wall, deck surface GROUND_STEP below slab top, STORAGE_H concrete
+        room below."""
         wall_face = u_sea + setback
         elev = round(cabin['base'] - GROUND_STEP, 2)
-        pad_w = L + PAD_MARGIN
-        pad_d = W + 2 * PAD_MARGIN
-        eP, nP = to_en(wall_face + pad_w / 2, v_deck)
-        pad = rec(f'{cabin["id"]}:pad', eP, nP, round(pad_w, 2), round(pad_d, 2),
-                  elev, 0.05, 0.05, 0.0, type='pad', flat=True, overhang=0.0,
-                  onParcel=False, variant=cabin['variant'],
-                  variantLabel=cabin['variantLabel'])
         eD, nD = to_en(wall_face - DECK_D / 2, v_deck)
-        deckr = rec(f'{cabin["id"]}:deck', eD, nD, DECK_D, round(pad_d, 2),
-                    elev - STORAGE_H, STORAGE_H, STORAGE_H, 0.0,
-                    type='slab', flat=True, overhang=0.0,
-                    variant=cabin['variant'], variantLabel=cabin['variantLabel'])
-        return [pad, deckr]
+        return rec(f'{cabin["id"]}:deck', eD, nD, DECK_D, round(W + 0.05, 2),
+                   elev - STORAGE_H, STORAGE_H, STORAGE_H, 0.0,
+                   type='slab', flat=True, overhang=0.0,
+                   variant=cabin['variant'], variantLabel=cabin['variantLabel'])
 
     out = []
     for d in DESIGNS:
         cabin = gable_cabin(f'newbuild:{d["key"]}', d['key'], d['label'],
                             d['walls_l'], d['walls_w'], d['pitch'],
                             d['wall_h'], d['overhang'])
-        out += [cabin, slab(cabin, d['walls_l'], d['walls_w'])]
-        out += fit_ground(cabin, d['walls_l'], d['walls_w'])
+        out += [cabin, slab(cabin, d['walls_l'], d['walls_w']),
+                fit_deck(cabin, d['walls_w'])]
         print(f"  {d['label']}: walls {d['walls_l']}x{d['walls_w']}, "
               f"ridge abs {base + cabin['ridge']:.2f}")
 
@@ -220,21 +210,15 @@ def write_floorplan():
     rect(x1 - WALL_EXT - 0.06, band0 + 0.35, x1 + 0.06, band0 + 1.35, '#8a5a2b')  # entry
     text(x1 + 0.75, band0 + 0.85, 'entrance', 10, '#6b5335', anchor='start')
 
-    # leveled pad outline (dashed green) and the connected deck/storage:
-    # deck same width as the pad, attached to the sea wall, top flush with
-    # the finished ground
-    padW = WALLS_W + 2 * PAD_MARGIN
-    px0 = ROOF_W / 2 - padW / 2
-    svg.append(f'<rect x="{px(px0)}" y="{py(y0 + WALLS_L + PAD_MARGIN)}" width="{padW*S}" '
-               f'height="{(WALLS_L + PAD_MARGIN)*S}" stroke="#58a86e" '
-               f'stroke-dasharray="7 5" fill="none"/>')
-    text(px0 + 1.5, y0 + WALLS_L + PAD_MARGIN - 0.45, 'leveled pad', 9.5, '#58a86e')
+    # the connected deck/storage: same width as the slab, on the sea wall
+    padW = WALLS_W
+    px0 = x0
     dy1 = y0
     dy0 = dy1 - DECK_D
     dx0 = px0
     rect(dx0, dy0, dx0 + padW, dy1, '#e8d9be', 'stroke="#b59a6a"')
     dcx, dcy = dx0 + padW / 2, (dy0 + dy1) / 2
-    text(dcx, dcy + 0.35, f'Deck {padW:.1f} × {DECK_D:.0f} m · flush with the pad', 11, '#6b5335')
+    text(dcx, dcy + 0.35, f'Deck {padW:.1f} × {DECK_D:.0f} m', 11, '#6b5335')
     text(dcx, dcy - 0.25, f'Storage / tech room ~{(padW - 0.5) * (DECK_D - 0.5):.0f} m² · h {STORAGE_H} m below', 10, '#8a7350')
     rect(dcx - 0.45, dy0 - 0.06, dcx + 0.45, dy0 + 0.06, '#8a5a2b')   # door below
     text(dcx, dy0 - 0.5, 'door to the room on the lower (sea) side', 9, '#999')

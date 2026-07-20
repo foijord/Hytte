@@ -19,11 +19,9 @@
 <rect x="296.0" y="113.2" width="48.0" height="11.6" fill="#7fb2d9" />
 <rect x="403.6" y="276.0" width="14.8" height="40.0" fill="#8a5a2b" />
 <text x="446.0" y="296.0" font-size="10" fill="#6b5335" text-anchor="start" >entrance</text>
-<rect x="52.0" y="54.0" width="424.0" height="506.0" stroke="#58a86e" stroke-dasharray="7 5" fill="none"/>
-<text x="112.0" y="72.0" font-size="9.5" fill="#58a86e" text-anchor="middle" >leveled pad</text>
-<rect x="52.0" y="560.0" width="424.0" height="120.0" fill="#e8d9be" stroke="#b59a6a"/>
-<text x="264.0" y="606.0" font-size="11" fill="#6b5335" text-anchor="middle" >Deck 10.6 × 3 m · flush with the pad</text>
-<text x="264.0" y="630.0" font-size="10" fill="#8a7350" text-anchor="middle" >Storage / tech room ~25 m² · h 1.9 m below</text>
+<rect x="112.0" y="560.0" width="304.0" height="120.0" fill="#e8d9be" stroke="#b59a6a"/>
+<text x="264.0" y="606.0" font-size="11" fill="#6b5335" text-anchor="middle" >Deck 7.6 × 3 m</text>
+<text x="264.0" y="630.0" font-size="10" fill="#8a7350" text-anchor="middle" >Storage / tech room ~18 m² · h 1.9 m below</text>
 <rect x="246.0" y="677.6" width="36.0" height="4.8" fill="#8a5a2b" />
 <text x="264.0" y="700.0" font-size="9" fill="#999" text-anchor="middle" >door to the room on the lower (sea) side</text>
 <text x="264.0" y="436.6" font-size="11.5" fill="#222" text-anchor="middle" font-weight="600">Allrom — stue / kjøkken</text>
@@ -54,10 +52,10 @@
 <line x1="112.0" y1="46.8" x2="112.0" y2="37.2" stroke="#8a6d3b" />
 <line x1="416.0" y1="46.8" x2="416.0" y2="37.2" stroke="#8a6d3b" />
 <text x="264.0" y="58.8" font-size="10.5" fill="#8a6d3b" text-anchor="middle" >7.6 m</text>
-<line x1="52.0" y1="728.0" x2="476.0" y2="728.0" stroke="#8a6d3b" />
-<line x1="52.0" y1="732.8" x2="52.0" y2="723.2" stroke="#8a6d3b" />
-<line x1="476.0" y1="732.8" x2="476.0" y2="723.2" stroke="#8a6d3b" />
-<text x="264.0" y="746.0" font-size="10.5" fill="#8a6d3b" text-anchor="middle" >10.6 m</text>
+<line x1="112.0" y1="728.0" x2="416.0" y2="728.0" stroke="#8a6d3b" />
+<line x1="112.0" y1="732.8" x2="112.0" y2="723.2" stroke="#8a6d3b" />
+<line x1="416.0" y1="732.8" x2="416.0" y2="723.2" stroke="#8a6d3b" />
+<text x="264.0" y="746.0" font-size="10.5" fill="#8a6d3b" text-anchor="middle" >7.6 m</text>
 <line x1="472.0" y1="768.0" x2="456.5" y2="809.2" stroke="#333" stroke-width="1.6"/>
 <circle cx="472.0" cy="768.0" r="2.5" fill="#333"/>
 <text x="450.2" y="826.0" font-size="12" fill="#333" text-anchor="middle" font-weight="700">N</text>
