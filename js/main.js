@@ -249,6 +249,7 @@ let buildingsSource = 'generated';
 
 function normalizeRec(b) {
   const rec = { overhang: 0, open: false, backWall: null, variant: null, ...b };
+  if (!Array.isArray(rec.cutExt) || rec.cutExt.length !== 4) rec.cutExt = [0, 0, 0, 0];
   if (rec.ridge == null || rec.flat == null) {   // legacy plain-box record
     rec.flat = true;
     rec.ridge = rec.height ?? 2.5;
@@ -487,8 +488,11 @@ function applyNewBuild() {
 // with a smoothstep-graded falloff outward so the cut blends into the
 // slope instead of a vertical cliff. Carved vertices get a grey-brown
 // tint so the excavation extent is visible on the ortho.
-const EXC_FALLOFF = 2.5;    // m, graded transition beyond building cuts
+const EXC_FALLOFF = 1.5;    // m, graded transition beyond building cuts
+const SLAB_FALLOFF = 0.6;   // m, concrete slabs/rooms cut nearly vertical
 const PAD_FALLOFF = 6.0;    // m, wide smooth auto-leveling around terraform pads
+// existing buildings that sit on natural ground - never carve under them
+const NO_CUT_IDS = new Set(['936839961', '936840733']);   // boathouse, annex
 function applyExcavation() {
   if (!terrainGeo) return;
   const m = terrainMeta;
@@ -508,16 +512,19 @@ function applyExcavation() {
     for (const group of ordered) {
       const rec = group.userData.rec;
       const isPad = rec.type === 'pad';
-      const R = isPad ? PAD_FALLOFF : EXC_FALLOFF;
+      const R = isPad ? PAD_FALLOFF : (rec.type === 'slab' ? SLAB_FALLOFF : EXC_FALLOFF);
       if (!group.visible) continue;     // hidden variant (old/new build toggle)
       if (rec.open) continue;           // outdoor roofs keep the natural ground
+      if (NO_CUT_IDS.has(String(rec.id))) continue;   // sits on natural ground
       const ov = rec.flat ? 0 : rec.overhang;
       const hw = Math.max((rec.w * group.scale.x) / 2 - ov, 0.2) + m.res / 2;
       const hd = Math.max((rec.d * group.scale.z) / 2 - ov, 0.2) + m.res / 2;
       const base = group.position.y;
       const cos = Math.cos(group.rotation.y), sin = Math.sin(group.rotation.y);
       const cx = group.position.x, cz = group.position.z;
-      const r = Math.hypot(hw + R, hd + R);
+      const ce = rec.cutExt;            // extra cut extent per local side [w+, w-, d+, d-]
+      const me = Math.max(0, ...ce);
+      const r = Math.hypot(hw + me + R, hd + me + R);
       const jmin = Math.max(0, Math.floor((cx - r - x0) / m.res));
       const jmax = Math.min(m.cols - 1, Math.ceil((cx + r - x0) / m.res));
       const imin = Math.max(0, Math.floor((cz - r - z0) / m.res));
@@ -528,8 +535,8 @@ function applyExcavation() {
           const dx = x0 + j * m.res - cx;
           const u = dx * cos - dz * sin;
           const v = dx * sin + dz * cos;
-          const du = Math.max(Math.abs(u) - hw, 0);
-          const dv = Math.max(Math.abs(v) - hd, 0);
+          const du = Math.max(u - (hw + ce[0]), -(hw + ce[1]) - u, 0);
+          const dv = Math.max(v - (hd + ce[2]), -(hd + ce[3]) - v, 0);
           const dist = Math.hypot(du, dv);
           if (dist > R) continue;
           const kk = i * m.cols + j;
@@ -695,6 +702,9 @@ function updateSelInfo() {
   document.getElementById('in_eave').value = (r.eave * selected.scale.y).toFixed(2);
   document.getElementById('in_ridge').value = (r.ridge * selected.scale.y).toFixed(2);
   document.getElementById('in_ang').value = THREE.MathUtils.radToDeg(selected.rotation.y).toFixed(1);
+  for (let i = 0; i < 4; i++) {
+    document.getElementById(`in_ce${i}`).value = r.cutExt[i].toFixed(1);
+  }
   const m = terrainMeta;
   const rec = selected.userData.rec;
   const e = (selected.position.x + m.originE).toFixed(1);
@@ -951,6 +961,7 @@ function serialize() {
       backWall: rec.backWall,
       variant: rec.variant ?? null,
       variantLabel: rec.variantLabel ?? null,
+      cutExt: rec.cutExt,
       footprint: rec.footprint,
     };
   });
@@ -1067,6 +1078,9 @@ bindDim('in_ridge', (r, v) => {
   if (r.flat) { r.eave = r.ridge = Math.max(v, 0.2); }
   else r.ridge = Math.max(v, r.eave + 0.1);
 });
+for (let i = 0; i < 4; i++) {
+  bindDim(`in_ce${i}`, (r, v) => { r.cutExt[i] = Math.max(0, v); });
+}
 
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;   // typing in a dimension field
