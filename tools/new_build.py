@@ -83,7 +83,8 @@ def main():
     # looking toward the sea = -0.5 in the local across-axis
     v_deck -= 0.5
     deck_top = deck['base'] + deck['ridge']
-    base = deck_top + 0.06                    # slab just above the deck
+    # owner 2026-07-20: whole new build lowered 0.5 m (slab top 3.05 NN2000)
+    base = deck_top + 0.06 - 0.5
 
     def rec(id_, cE_, cN_, w, d, b, eave_, ridge_, pitch, **kw):
         r = {'id': id_, 'type': kw.pop('type', 'cabin'), 'onParcel': True,
