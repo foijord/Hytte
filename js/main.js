@@ -487,7 +487,8 @@ function applyNewBuild() {
 // with a smoothstep-graded falloff outward so the cut blends into the
 // slope instead of a vertical cliff. Carved vertices get a grey-brown
 // tint so the excavation extent is visible on the ortho.
-const EXC_FALLOFF = 2.5;    // m, graded transition beyond the footprint
+const EXC_FALLOFF = 2.5;    // m, graded transition beyond building cuts
+const PAD_FALLOFF = 6.0;    // m, wide smooth auto-leveling around terraform pads
 function applyExcavation() {
   if (!terrainGeo) return;
   const m = terrainMeta;
@@ -499,7 +500,6 @@ function applyExcavation() {
     col[k * 3] = col[k * 3 + 1] = col[k * 3 + 2] = 1;
   }
   if (excavateOn) {
-    const R = EXC_FALLOFF;
     const x0 = m.e0 - m.originE;
     const z0 = m.originN - m.n0;
     // terraform pads first (they raise AND lower), buildings cut afterwards
@@ -508,6 +508,7 @@ function applyExcavation() {
     for (const group of ordered) {
       const rec = group.userData.rec;
       const isPad = rec.type === 'pad';
+      const R = isPad ? PAD_FALLOFF : EXC_FALLOFF;
       if (!group.visible) continue;     // hidden variant (old/new build toggle)
       if (rec.open) continue;           // outdoor roofs keep the natural ground
       const ov = rec.flat ? 0 : rec.overhang;

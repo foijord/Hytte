@@ -1,22 +1,16 @@
-"""Generate the new-cabin concept variants: web/newbuild.json (3D records)
-and docs/floorplan.svg (dimensioned concept floor plan of the baseline).
+"""Generate the new-cabin design list: web/newbuild.json (3D records) and
+docs/floorplan.svg (dimensioned concept plan of the Furutangen layout).
 
-Base model: Familiehytta FURUTANGEN 75 MED HEMS (published: BRA 74 m2,
-GUA 112 m2 incl. ~38 m2 hems, length 11.15 m, width 8.85 m incl. overhang,
-ridge 5.0 m, gesims 2.8 m, 30 deg roof; wall span 7.6 derived from the roof
-geometry). Gable window wall toward the sea on the old sea-facade line,
-centered on the deck. Slab top at deck surface + 0.06 (3.55 NN2000).
-
-Variants (deck-sun study; the viewer's "new build" button cycles them):
-  A  gable front, 30 deg (baseline; ridge abs 8.54)
-  B  gable front, 30 deg, set back 2.5 m from the facade line
-  C  gable front, 25 deg (ridge abs ~8.1 - dispensation fallback)
-  D  low pulttak ~7 deg a la Saltdalshytta Nova, approximated as a flat
-     3.5 m volume (no hems at this height - needs a bigger footprint)
-  E  as A plus a 3.5x4.5 m west sun-deck for afternoon/evening sun
-
-All variants share the under-deck storage/tech room (1.9 m headroom,
-floor +1.59 NN2000) and the unchanged 8x3 deck surface.
+Each design in DESIGNS gets, auto-fitted to its cabin:
+  - a grey concrete slab (0.35 m plinth flush with the walls),
+  - a leveled terraform pad (1.5 m apron on the sides and road end,
+    finished ground GROUND_STEP below slab top) - the viewer levels the
+    terrain to it with a wide smooth transition in all directions,
+  - the deck/storage: same width as the pad, connected to its sea edge,
+    deck surface flush with the pad, concrete storage room below
+    (STORAGE_H headroom).
+Gable window wall toward the sea on the old sea-facade line, centered on
+the old deck position. Slab top at 3.55 NN2000 (old deck top + 0.06).
 """
 import json
 import math
@@ -24,13 +18,25 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-WALLS_L = 11.15            # m, Furutangen 75 wall footprint
+# selectable designs (first = default). Dimensions are wall footprints;
+# published widths/lengths are consistent with ridge/gesims/pitch geometry.
+DESIGNS = [
+    dict(key='A', label='Saltdalshytta Frem 80 · 27°',      # saltdalshytta.no/frem-80:
+         walls_l=11.7, walls_w=6.3, pitch=27.0,             # BYA 80, BRA 67.5, no hems,
+         wall_h=2.90, overhang=0.5),                        # monehoyde 4.5
+    dict(key='B', label='Familiehytta Furutangen 75 · 30°', # BRA 74 + hems ~38,
+         walls_l=11.15, walls_w=7.6, pitch=30.0,            # ridge 5.0 / gesims 2.8
+         wall_h=2.8, overhang=0.6),
+]
+WALLS_L = 11.15            # floor-plan drawing (Furutangen) only
 WALLS_W = 7.6
-PITCH = 30.0               # deg, Furutangen standard
-WALL_H = 2.8               # m, gesims height
+PITCH = 30.0
+WALL_H = 2.8
 OVERHANG = 0.6
 STORAGE_H = 1.9            # m, under-deck room headroom
-SETBACK = 2.5              # m, variant B
+PAD_MARGIN = 1.5           # m, leveled apron beyond the walls (sides + road end)
+GROUND_STEP = 0.06         # m, finished ground and deck sit this far below slab top
+DECK_D = 3.0               # m, deck depth in front of the sea wall
 WALL_EXT = 0.25            # exterior wall thickness (floor plan)
 PART = 0.15                # interior partition thickness (floor plan)
 
@@ -85,43 +91,59 @@ def main():
                    type='slab', flat=True, overhang=0.0, onParcel=False,
                    variant=cabin['variant'], variantLabel=cabin['variantLabel'])
 
-    def gable_cabin(id_, variant, label, pitch=PITCH, setback=0.0):
-        roof_l, roof_w = WALLS_L + 2 * OVERHANG, WALLS_W + 2 * OVERHANG
+    def gable_cabin(id_, variant, label, L, W, pitch, wall_h, ov, setback=0.0):
+        roof_l, roof_w = L + 2 * ov, W + 2 * ov
         slope = math.tan(math.radians(pitch))
-        eave = WALL_H - slope * OVERHANG
+        eave = wall_h - slope * ov
         ridge = eave + slope * roof_w / 2
-        u_c = u_sea + setback - OVERHANG + roof_l / 2
+        u_c = u_sea + setback - ov + roof_l / 2
         cE_, cN_ = to_en(u_c, v_deck)
         return rec(id_, cE_, cN_, round(roof_l, 2), round(roof_w, 2),
-                   base, eave, ridge, pitch, variant=variant, variantLabel=label)
+                   base, eave, ridge, pitch, overhang=ov,
+                   variant=variant, variantLabel=label)
 
-    # the list of selectable new-build designs; one entry today, more to come
+    def fit_ground(cabin, L, W, setback=0.0):
+        """Auto-fit to the cabin: a leveled terraform pad around it (1.5 m
+        apron on the sides and road end, ground just below slab top), and the
+        deck/storage - same width as the pad, connected to its sea edge,
+        deck surface flush with the pad."""
+        wall_face = u_sea + setback
+        elev = round(cabin['base'] - GROUND_STEP, 2)
+        pad_w = L + PAD_MARGIN
+        pad_d = W + 2 * PAD_MARGIN
+        eP, nP = to_en(wall_face + pad_w / 2, v_deck)
+        pad = rec(f'{cabin["id"]}:pad', eP, nP, round(pad_w, 2), round(pad_d, 2),
+                  elev, 0.05, 0.05, 0.0, type='pad', flat=True, overhang=0.0,
+                  onParcel=False, variant=cabin['variant'],
+                  variantLabel=cabin['variantLabel'])
+        eD, nD = to_en(wall_face - DECK_D / 2, v_deck)
+        deckr = rec(f'{cabin["id"]}:deck', eD, nD, DECK_D, round(pad_d, 2),
+                    elev - STORAGE_H, STORAGE_H, STORAGE_H, 0.0,
+                    type='slab', flat=True, overhang=0.0,
+                    variant=cabin['variant'], variantLabel=cabin['variantLabel'])
+        return [pad, deckr]
+
     out = []
-    for cabin in (gable_cabin('newbuild:A', 'A', 'Furutangen 75 · gable 30°'),):
-        out += [cabin, slab(cabin, WALLS_L, WALLS_W)]
-
-    # shared: the under-deck storage/tech room (variant: null = all variants);
-    # deck keeps its own angle, 90 deg off the cabin's
-    out.append(rec('newbuild:storage', deck['cE'], deck['cN'],
-                   deck['w'], deck['d'], deck_top - STORAGE_H,
-                   STORAGE_H, STORAGE_H, 0.0,
-                   type='slab', flat=True, overhang=0.0,
-                   angleDeg=deck['angleDeg'], variant=None,
-                   variantLabel=None))
+    for d in DESIGNS:
+        cabin = gable_cabin(f'newbuild:{d["key"]}', d['key'], d['label'],
+                            d['walls_l'], d['walls_w'], d['pitch'],
+                            d['wall_h'], d['overhang'])
+        out += [cabin, slab(cabin, d['walls_l'], d['walls_w'])]
+        out += fit_ground(cabin, d['walls_l'], d['walls_w'])
+        print(f"  {d['label']}: walls {d['walls_l']}x{d['walls_w']}, "
+              f"ridge abs {base + cabin['ridge']:.2f}")
 
     path = ROOT / 'web' / 'newbuild.json'
     path.write_text(json.dumps(out, indent=1), encoding='utf-8')
-    slope = math.tan(math.radians(PITCH))
-    ridge_abs = base + WALL_H - slope * OVERHANG + slope * (WALLS_W + 2 * OVERHANG) / 2
-    print(f'wrote {path} ({len(out)} records; '
-          f'ridge abs {ridge_abs:.2f} vs old {w1["base"] + w1["ridge"]:.2f})')
+    print(f'wrote {path} ({len(out)} records; old cabin ridge abs '
+          f'{w1["base"] + w1["ridge"]:.2f})')
 
-    write_floorplan(deck)
+    write_floorplan()
 
 
 # ---------------------------------------------------------------- floor plan
 
-def write_floorplan(deck):
+def write_floorplan():
     """Concept plan of the baseline (gable front): X = across the gable
     facade, Y = along the ridge (0 = sea-end roof edge, road at the top)."""
     S = 40                                    # px per meter
@@ -198,14 +220,22 @@ def write_floorplan(deck):
     rect(x1 - WALL_EXT - 0.06, band0 + 0.35, x1 + 0.06, band0 + 1.35, '#8a5a2b')  # entry
     text(x1 + 0.75, band0 + 0.85, 'entrance', 10, '#6b5335', anchor='start')
 
-    # deck + the concrete room below, true footprint offset to the cabin
-    dy1 = y0 - 0.61
-    dy0 = dy1 - deck['d']
-    dx0 = ROOF_W / 2 - deck['w'] / 2
-    rect(dx0, dy0, dx0 + deck['w'], dy1, '#e8d9be', 'stroke="#b59a6a"')
-    dcx, dcy = dx0 + deck['w'] / 2, (dy0 + dy1) / 2
-    text(dcx, dcy + 0.35, f'Deck {deck["w"]:.0f} × {deck["d"]:.0f} m', 11, '#6b5335')
-    text(dcx, dcy - 0.25, f'Storage / tech room ~{(deck["w"] - 0.5) * (deck["d"] - 0.5):.0f} m² · h {STORAGE_H} m below', 10, '#8a7350')
+    # leveled pad outline (dashed green) and the connected deck/storage:
+    # deck same width as the pad, attached to the sea wall, top flush with
+    # the finished ground
+    padW = WALLS_W + 2 * PAD_MARGIN
+    px0 = ROOF_W / 2 - padW / 2
+    svg.append(f'<rect x="{px(px0)}" y="{py(y0 + WALLS_L + PAD_MARGIN)}" width="{padW*S}" '
+               f'height="{(WALLS_L + PAD_MARGIN)*S}" stroke="#58a86e" '
+               f'stroke-dasharray="7 5" fill="none"/>')
+    text(px0 + 1.5, y0 + WALLS_L + PAD_MARGIN - 0.45, 'leveled pad', 9.5, '#58a86e')
+    dy1 = y0
+    dy0 = dy1 - DECK_D
+    dx0 = px0
+    rect(dx0, dy0, dx0 + padW, dy1, '#e8d9be', 'stroke="#b59a6a"')
+    dcx, dcy = dx0 + padW / 2, (dy0 + dy1) / 2
+    text(dcx, dcy + 0.35, f'Deck {padW:.1f} × {DECK_D:.0f} m · flush with the pad', 11, '#6b5335')
+    text(dcx, dcy - 0.25, f'Storage / tech room ~{(padW - 0.5) * (DECK_D - 0.5):.0f} m² · h {STORAGE_H} m below', 10, '#8a7350')
     rect(dcx - 0.45, dy0 - 0.06, dcx + 0.45, dy0 + 0.06, '#8a5a2b')   # door below
     text(dcx, dy0 - 0.5, 'door to the room on the lower (sea) side', 9, '#999')
 
@@ -232,7 +262,7 @@ def write_floorplan(deck):
     dimline(-0.75, y0, -0.75, y1, f'{WALLS_L:.2f} m', dx=0.38)
     dimline(0, 14.05, ROOF_W, 14.05, f'{ROOF_W:.1f} m roof', dy=0.35)
     dimline(x0, 13.55, x1, 13.55, f'{WALLS_W:.1f} m', dy=-0.42)
-    dimline(dx0, dy0 - 1.2, dx0 + deck['w'], dy0 - 1.2, f'{deck["w"]:.1f} m', dy=-0.45)
+    dimline(dx0, dy0 - 1.2, dx0 + padW, dy0 - 1.2, f'{padW:.1f} m', dy=-0.45)
 
     # orientation: sea side down (NNW); north arrow from the record angle
     bl = json.load(open(ROOT / 'web' / 'buildings.json', encoding='utf-8'))
