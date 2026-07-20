@@ -323,6 +323,25 @@ function rebuildBuilding(group) {
   const color = wallColor(rec);
   const emissive = group.userData.selected ? 0x2a4d10 : 0x000000;
 
+  if (rec.type === 'pad') {
+    // terraform pad: translucent marker; its base elevation terraforms
+    // the ground (cut AND fill) in applyExcavation
+    const h = Math.max(rec.ridge, 0.05);
+    const g = new THREE.BoxGeometry(rec.w, h, rec.d);
+    g.translate(0, h / 2, 0);
+    const mesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial({
+      color: 0x58c470, roughness: 0.9, transparent: true, opacity: 0.35,
+      depthWrite: false, emissive,
+    }));
+    mesh.userData.part = true;
+    group.add(mesh);
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(g),
+      new THREE.LineBasicMaterial({ color: 0x2e7d44 }));
+    edges.userData.part = true;
+    group.add(edges);
+    return;                              // pads cast no shadows
+  }
+
   if (rec.open && !rec.flat) {
     // outdoor roofed wing: corner posts instead of walls
     const [W, D] = rec.ridgeAxis === 'd' ? [rec.d, rec.w] : [rec.w, rec.d];
@@ -472,8 +491,12 @@ function applyExcavation() {
     const R = EXC_FALLOFF;
     const x0 = m.e0 - m.originE;
     const z0 = m.originN - m.n0;
-    for (const group of buildingsGroup.children) {
+    // terraform pads first (they raise AND lower), buildings cut afterwards
+    const ordered = [...buildingsGroup.children].sort((a, b) =>
+      (a.userData.rec.type === 'pad' ? 0 : 1) - (b.userData.rec.type === 'pad' ? 0 : 1));
+    for (const group of ordered) {
       const rec = group.userData.rec;
+      const isPad = rec.type === 'pad';
       if (!group.visible) continue;     // hidden variant (old/new build toggle)
       if (rec.open) continue;           // outdoor roofs keep the natural ground
       const ov = rec.flat ? 0 : rec.overhang;
@@ -501,7 +524,8 @@ function applyExcavation() {
           const t = dist / R;
           const s = t * t * (3 - 2 * t);                 // smoothstep
           const target = base + (originalHeights[kk] - base) * s;
-          if (arr[kk * 3 + 1] > target) arr[kk * 3 + 1] = target;
+          if (isPad) arr[kk * 3 + 1] = target;           // cut and fill
+          else if (arr[kk * 3 + 1] > target) arr[kk * 3 + 1] = target;
         }
       }
     }
@@ -512,6 +536,11 @@ function applyExcavation() {
         col[k * 3] = 1 - 0.6 * f;
         col[k * 3 + 1] = 1 - 0.7 * f;
         col[k * 3 + 2] = 1 - 0.8 * f;
+      } else if (cut < -0.03) {                          // fill: warm earthy tint
+        const f = Math.min(-cut / 1.5, 1) * 0.3;
+        col[k * 3] = 1 - 0.15 * f;
+        col[k * 3 + 1] = 1 - 0.25 * f;
+        col[k * 3 + 2] = 1 - 0.5 * f;
       }
     }
   }
@@ -1041,6 +1070,28 @@ window.addEventListener('keydown', e => {
 
 document.getElementById('save').addEventListener('click', save);
 document.getElementById('walk').addEventListener('click', () => setWalk(!walker.on));
+
+// terraform pad: level the ground to the pad's base elevation (cut + fill)
+document.getElementById('addpad').addEventListener('click', () => {
+  const m = terrainMeta;
+  if (!m) return;
+  let n = 1;
+  const ids = new Set(buildingsGroup.children.map(g => String(g.userData.rec.id)));
+  while (ids.has(`custom:pad:${n}`)) n++;
+  const x = controls.target.x, z = controls.target.z;
+  const rec = normalizeRec({
+    id: `custom:pad:${n}`, type: 'pad', onParcel: false,
+    cE: +(x + m.originE).toFixed(2), cN: +(m.originN - z).toFixed(2),
+    w: 6, d: 6, angleDeg: 0, base: +terrainYAt(x, z).toFixed(2),
+    height: 0.05, flat: true, eave: 0.05, ridge: 0.05, ridgeAxis: 'w',
+    pitchDeg: 0, overhang: 0,
+  });
+  const group = makeBuildingGroup(rec);
+  applyExcavation();
+  select(group);
+  setMode('translate');
+  markDirty();
+});
 
 document.getElementById('reset').addEventListener('click', async () => {
   if (!confirm('Discard all edits and reload the generated buildings?')) return;

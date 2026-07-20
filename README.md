@@ -28,6 +28,8 @@ Click a building to select it, then **t** = move, **r** = rotate (vertical axis 
 
 **Terrain cut:** the terrain is carved down to each box's base inside its footprint, with a 2.5 m smoothstep-graded falloff outward so the excavation blends into the slope; carved areas are tinted grey-brown so the blasting extent is visible (toggle with the "terrain cut" button). Recomputed automatically after every move/scale/delete.
 
+**Terraform pads:** "add pad" drops a 6×6 m translucent green pad at the orbit point, at current ground level. Its base elevation levels the terrain to it — **cut and fill** — with the same graded falloff as excavations; move/rotate/resize it with the gizmos (Y arrow = target elevation) or the numeric fields, and delete it to undo. Pads save/load like any building and are walkable.
+
 **Walk mode:** the "walk" button drops a 1.8 m person at the orbit point and takes their view (eye 1.7 m). WASD/arrows walk, drag looks around; on touch, the left third of the screen is a movement joystick and the rest looks. You can walk onto decks and slabs; Esc or the button exits, leaving the figure standing as a scale reference. `?walk=1` starts walking at `tgt`.
 
 URL parameters for reproducible views: `?cam=x,y,z&tgt=x,y,z&labels=on&cut=off&new=A..E|off&sun=month,hour|off`. Defaults: new build variant A, sun simulation on (mid-June 15:00 solar), labels off.
