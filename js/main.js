@@ -564,6 +564,7 @@ function refreshAllLabels() {
 
 const tc = new TransformControls(camera, renderer.domElement);
 tc.setSize(0.8);
+tc.setSpace('local');     // gizmo axes follow the building's rotation
 scene.add(tc);
 
 // ridge handle: the roof-angle gizmo — drag vertically to change the pitch
