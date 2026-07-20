@@ -39,6 +39,51 @@ scene.add(new THREE.HemisphereLight(0xbfd7ff, 0x5c4f3d, 0.9));
 const sun = new THREE.DirectionalLight(0xfff1da, 1.8);
 sun.position.set(-150, 260, 180);
 scene.add(sun);
+scene.add(sun.target);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -130; sun.shadow.camera.right = 130;
+sun.shadow.camera.top = 130; sun.shadow.camera.bottom = -130;
+sun.shadow.camera.near = 150; sun.shadow.camera.far = 700;
+sun.shadow.bias = -0.0004;
+sun.shadow.normalBias = 2;
+
+// ------------------------------------------------ sun simulation (58.056N)
+// solar-time position for the property; month is fractional (6.5 = mid-June)
+const LAT = THREE.MathUtils.degToRad(58.056);
+const SOLAR_TO_CEST = 2 - 7.729 / 15;     // ~+1.5 h from solar to local summer time
+
+function sunDirection(month, hour) {
+  const n = Math.floor((month - 1) * 30.44 + 15);
+  const decl = THREE.MathUtils.degToRad(23.45) * Math.sin(2 * Math.PI * (284 + n) / 365);
+  const H = THREE.MathUtils.degToRad((hour - 12) * 15);
+  const el = Math.asin(Math.sin(LAT) * Math.sin(decl) + Math.cos(LAT) * Math.cos(decl) * Math.cos(H));
+  const azS = Math.atan2(Math.sin(H), Math.cos(H) * Math.sin(LAT) - Math.tan(decl) * Math.cos(LAT));
+  const azN = azS + Math.PI;              // from north, clockwise (east = 90)
+  return { el, x: Math.sin(azN) * Math.cos(el), y: Math.sin(el), z: -Math.cos(azN) * Math.cos(el) };
+}
+
+let sunSimOn = false, sunMonth = 6.5, sunHour = 15;
+
+function updateSun() {
+  if (!sunSimOn) {
+    sun.position.set(-150, 260, 180);
+    sun.intensity = 1.8;
+    sun.castShadow = false;
+  } else {
+    const d = sunDirection(sunMonth, sunHour);
+    sun.position.set(d.x * 400, Math.max(d.y, 0.02) * 400, d.z * 400);
+    sun.intensity = d.el > 0 ? 1.8 : 0.05;
+    sun.castShadow = d.el > 0;
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const local = sunHour + SOLAR_TO_CEST;
+    const hm = h => `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, '0')}`;
+    document.getElementById('sunlabel').textContent =
+      `${months[Math.min(11, Math.floor(sunMonth - 1))]} · ${hm(sunHour)} solar (≈${hm(local)} CEST)` +
+      (d.el > 0 ? ` · sun ${THREE.MathUtils.radToDeg(d.el).toFixed(0)}°` : ' · below horizon');
+  }
+}
 
 let terrainMeta = null;
 let terrainMesh = null;
@@ -62,6 +107,17 @@ if (q.get('labels') === 'off') {
 if (q.get('cut') === 'off') {
   excavateOn = false;
   document.getElementById('excav').textContent = 'terrain cut: off';
+}
+if (q.has('sun')) {                 // ?sun=month,hour (solar time)
+  const [m, h] = q.get('sun').split(',').map(Number);
+  sunSimOn = true;
+  if (Number.isFinite(m)) sunMonth = m;
+  if (Number.isFinite(h)) sunHour = h;
+  document.getElementById('sun').textContent = 'sun: on';
+  document.getElementById('sunctl').style.display = '';
+  document.getElementById('sunmonth').value = sunMonth;
+  document.getElementById('sunhour').value = sunHour;
+  updateSun();
 }
 
 function heightAt(e, n) {
@@ -138,6 +194,8 @@ async function buildTerrain() {
     console.warn('orthophoto failed to load, rendering untextured');
   }
   terrainMesh = new THREE.Mesh(geo, mat);
+  terrainMesh.castShadow = true;
+  terrainMesh.receiveShadow = true;
   scene.add(terrainMesh);
 }
 
@@ -317,6 +375,12 @@ function rebuildBuilding(group) {
       new THREE.LineBasicMaterial({ color: 0x1c2733 }));
     roofEdges.userData.part = true;
     group.add(roofEdges);
+  }
+  for (const child of group.children) {
+    if (child.isMesh && child.userData.part) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
   }
 }
 
@@ -786,6 +850,21 @@ document.getElementById('excav').addEventListener('click', e => {
   excavateOn = !excavateOn;
   e.target.textContent = `terrain cut: ${excavateOn ? 'on' : 'off'}`;
   applyExcavation();
+});
+
+document.getElementById('sun').addEventListener('click', e => {
+  sunSimOn = !sunSimOn;
+  e.target.textContent = `sun: ${sunSimOn ? 'on' : 'off'}`;
+  document.getElementById('sunctl').style.display = sunSimOn ? '' : 'none';
+  updateSun();
+});
+document.getElementById('sunmonth').addEventListener('input', e => {
+  sunMonth = +e.target.value;
+  updateSun();
+});
+document.getElementById('sunhour').addEventListener('input', e => {
+  sunHour = +e.target.value;
+  updateSun();
 });
 
 document.getElementById('newb').addEventListener('click', e => {

@@ -28,7 +28,9 @@ Click a building to select it, then **t** = move, **r** = rotate (vertical axis 
 
 **Terrain cut:** the terrain is carved down to each box's base inside its footprint (toggle with the "terrain cut" button), so buildings read as built into the slope — e.g. the storage volume under the deck. Recomputed automatically after every move/scale/delete.
 
-URL parameters for reproducible views: `?cam=x,y,z&tgt=x,y,z&labels=off&cut=off&new=1`.
+URL parameters for reproducible views: `?cam=x,y,z&tgt=x,y,z&labels=off&cut=off&new=1&sun=month,hour`.
+
+**Sun study:** the "sun" HUD button enables real solar geometry for the property (58.06°N) with cast shadows; the two sliders set month and hour (solar time — local summer time runs ~1.5 h later). Use it to judge how the cabin shades the deck through the season.
 
 ## New build concept
 
