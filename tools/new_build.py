@@ -138,7 +138,7 @@ def main():
                    variant=variant, variantLabel=label)
 
     def asym_cabin(id_, variant, label, depth, width, pitch, gesims, ov,
-                   step=0.0):
+                   step=0.0, mone=None):
         """Asymmetric saddle from drawing values: gesims (wall height over
         the LOCAL floor) on both sides, equal pitch, trappet step - the
         living (sea) half at the normal slab level, back half stepped up.
@@ -148,8 +148,12 @@ def main():
         roof_u, roof_v = depth + 2 * ov, width + 2 * ov
         e_sea = gesims - slope * ov                  # sea roof edge over base
         e_road = step + gesims - slope * ov          # road roof edge over base
-        ridge = (e_sea + e_road + slope * roof_u) / 2
+        if mone is not None:                         # drawing monehoyde over the upper floor
+            ridge = step + mone
+        else:
+            ridge = (e_sea + e_road + slope * roof_u) / 2
         off = round((ridge - e_sea) / slope - roof_u / 2, 2)   # apex, + = road
+        off = min(off, roof_u / 2 - 0.3)
         u_c = u_sea - ov + roof_u / 2
         cE_, cN_ = to_en(u_c, v_deck)
         return rec(id_, cE_, cN_, round(roof_u, 2), round(roof_v, 2), base,
@@ -183,7 +187,7 @@ def main():
             cabin = asym_cabin(f'newbuild:{d["key"]}', d['key'], d['label'],
                                d['depth'], d['width'], d['pitch'],
                                d['gesims'], d['overhang'],
-                               step=d.get('step', 0.0))
+                               step=d.get('step', 0.0), mone=d.get('mone'))
             L, W = d['depth'], d['width']
             out += [cabin] + stepped_slabs(cabin, L, W, d.get('step', 0.0),
                                            d.get('front_depth', L / 2))
