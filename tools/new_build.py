@@ -30,8 +30,9 @@ DESIGNS = [
     dict(key='C', label='Saltdalshytta Frem 95 · asym 22°',  # saltdalshytta.no/frem-95 +
          form='asym', depth=9.3, width=9.9, pitch=22.0,     # owner's drawings: BYA 96,
          gesims=2.79, overhang=0.5,                         # BRA 79.2, gesims 2.79 over the
-         step=0.97, front_depth=3.9),                       # local floor BOTH sides, trappet
-                                                            # step 0.97; ridge derived
+         step=0.97, mone=4.34, front_depth=3.9),            # local floor BOTH sides, trappet
+                                                            # step 0.97; monehoyde 4.34 over
+                                                            # the upper floor (drawing)
                                                             # saddle, ridge parallel to the
                                                             # long window facade (to the sea),
                                                             # long low plane over the veranda
