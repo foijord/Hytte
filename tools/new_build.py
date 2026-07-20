@@ -68,7 +68,10 @@ def main():
     slope = math.tan(math.radians(PITCH))
     eave = WALL_H - slope * OVERHANG          # roof-edge height above base
     ridge = eave + slope * roof_w / 2
-    base = w1['base']
+    # slab top just above the deck surface (small step down to the deck),
+    # not the old cabin's excavation base - that sank the cabin half a
+    # meter below its own deck
+    base = deck['base'] + deck['ridge'] + 0.06
 
     def rec(id_, cE_, cN_, w, d, b, eave_, ridge_, pitch, **kw):
         r = {'id': id_, 'type': kw.pop('type', 'cabin'), 'onParcel': True,
