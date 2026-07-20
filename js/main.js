@@ -535,8 +535,10 @@ function applyExcavation() {
           const dx = x0 + j * m.res - cx;
           const u = dx * cos - dz * sin;
           const v = dx * sin + dz * cos;
-          const du = Math.max(u - (hw + ce[0]), -(hw + ce[1]) - u, 0);
-          const dv = Math.max(v - (hd + ce[2]), -(hd + ce[3]) - v, 0);
+          const up = Math.max(hw + ce[0], 0.1), um = Math.max(hw + ce[1], 0.1);
+          const vp = Math.max(hd + ce[2], 0.1), vm = Math.max(hd + ce[3], 0.1);
+          const du = Math.max(u - up, -um - u, 0);
+          const dv = Math.max(v - vp, -vm - v, 0);
           const dist = Math.hypot(du, dv);
           if (dist > R) continue;
           const kk = i * m.cols + j;
@@ -1079,7 +1081,7 @@ bindDim('in_ridge', (r, v) => {
   else r.ridge = Math.max(v, r.eave + 0.1);
 });
 for (let i = 0; i < 4; i++) {
-  bindDim(`in_ce${i}`, (r, v) => { r.cutExt[i] = Math.max(0, v); });
+  bindDim(`in_ce${i}`, (r, v) => { r.cutExt[i] = v; });   // negative shrinks the cut
 }
 
 window.addEventListener('keydown', e => {
