@@ -476,18 +476,19 @@ function makeBuildingGroup(rec) {
 }
 
 async function addBuildings() {
+  const bust = `?t=${Date.now()}`;      // building data must never be stale
   let list = null;
-  const edited = await fetch('web/buildings_edited.json');
+  const edited = await fetch(`web/buildings_edited.json${bust}`);
   if (edited.ok) {
     list = await edited.json();
     buildingsSource = 'edited';
   } else {
-    list = await (await fetch('web/buildings.json')).json();
+    list = await (await fetch(`web/buildings.json${bust}`)).json();
   }
   try {
     // new-build concept records; skip ids already present (saved edits)
     const have = new Set(list.map(b => String(b.id)));
-    const nb = await fetch('web/newbuild.json');
+    const nb = await fetch(`web/newbuild.json${bust}`);
     if (nb.ok) for (const b of await nb.json()) {
       if (b.variant && !variantList.some(v => v.key === b.variant)) {
         variantList.push({ key: b.variant, label: b.variantLabel ?? b.variant });
