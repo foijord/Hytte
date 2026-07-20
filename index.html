@@ -46,10 +46,12 @@
   drag: orbit · scroll: zoom · right-drag: pan · dbl-click: set orbit point<br>
   <span id="selinfo"></span><br>
   <span id="editrow" style="display:none">
+    <button id="mode_t">move</button><button id="mode_r">rotate</button><button id="mode_s">scale</button> ·
     w <input id="in_w" type="number" step="0.1" min="0.5"> ×
     d <input id="in_d" type="number" step="0.1" min="0.5"> m ·
     eave <input id="in_eave" type="number" step="0.1"> ·
-    ridge <input id="in_ridge" type="number" step="0.1"> m
+    ridge <input id="in_ridge" type="number" step="0.1"> m ·
+    ∠ <input id="in_ang" type="number" step="1">°
     <br>
   </span>
   <button id="save">save</button>
@@ -69,6 +71,6 @@
   <a href="docs/floorplan.svg">floor plan</a> ·
   <a href="https://github.com/foijord/hytte">repo</a>
 </div>
-<script type="module" src="js/main.js?v=10"></script>
+<script type="module" src="js/main.js?v=11"></script>
 </body>
 </html>

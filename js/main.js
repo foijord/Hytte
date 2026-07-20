@@ -682,6 +682,7 @@ function updateSelInfo() {
   document.getElementById('in_d').value = (r.d * selected.scale.z).toFixed(2);
   document.getElementById('in_eave').value = (r.eave * selected.scale.y).toFixed(2);
   document.getElementById('in_ridge').value = (r.ridge * selected.scale.y).toFixed(2);
+  document.getElementById('in_ang').value = THREE.MathUtils.radToDeg(selected.rotation.y).toFixed(1);
   const m = terrainMeta;
   const rec = selected.userData.rec;
   const e = (selected.position.x + m.originE).toFixed(1);
@@ -699,7 +700,24 @@ function setMode(mode) {
   tc.showX = !rot;
   tc.showZ = !rot;
   tc.showY = true;
+  for (const [id, m] of [['mode_t', 'translate'], ['mode_r', 'rotate'], ['mode_s', 'scale']]) {
+    document.getElementById(id).style.background = m === mode ? '#3c6ea5' : '';
+  }
 }
+setMode('translate');
+document.getElementById('mode_t').addEventListener('click', () => setMode('translate'));
+document.getElementById('mode_r').addEventListener('click', () => setMode('rotate'));
+document.getElementById('mode_s').addEventListener('click', () => setMode('scale'));
+document.getElementById('in_ang').addEventListener('change', e => {
+  if (!selected) return;
+  const v = parseFloat(e.target.value);
+  if (!Number.isFinite(v)) { updateSelInfo(); return; }
+  selected.rotation.y = THREE.MathUtils.degToRad(v);
+  applyExcavation();
+  refreshLabel(selected);
+  updateSelInfo();
+  markDirty();
+});
 
 tc.addEventListener('dragging-changed', e => {
   controls.enabled = !e.value;
