@@ -92,14 +92,14 @@ let terrainGeo = null;
 let originalHeights = null;
 let excavateOn = true;
 let labelsOn = true;
-let newBuildOn = false;
+// new-build variant cycling: null = existing buildings, else 'A'..'E'
+let newVariant = null;
+let variantList = [];        // [{key, label}] discovered from newbuild.json
 // records replaced by the new-build concept (web/newbuild.json):
 // main cabin, outdoor wing, the small attached storage (:3) and the deck
 const OLD_CABIN_IDS = new Set(['936839960:1', '936839960:2', '936839960:3', 'deck']);
-if (q.get('new') === '1') {
-  newBuildOn = true;
-  document.getElementById('newb').textContent = 'new build: on';
-}
+const qNew = q.get('new');
+if (qNew) newVariant = qNew === '1' ? 'A' : qNew.toUpperCase();
 if (q.get('labels') === 'off') {
   labelsOn = false;
   document.getElementById('labels').textContent = 'labels: off';
@@ -216,9 +216,19 @@ async function addParcel() {
   const m = terrainMeta;
   for (const f of gj.features) {
     for (const ring of f.geometry.coordinates) {
-      const pts = ring.map(([e, n]) => new THREE.Vector3(
-        e - m.originE, heightAt(e, n) + 0.35, m.originN - n,
-      ));
+      // resample each edge so the line drapes onto the terrain between
+      // the polygon vertices instead of cutting through knolls and dips
+      const pts = [];
+      for (let i = 0; i < ring.length - 1; i++) {
+        const [e0, n0] = ring[i], [e1, n1] = ring[i + 1];
+        const steps = Math.max(1, Math.ceil(Math.hypot(e1 - e0, n1 - n0) / 0.75));
+        for (let s = 0; s < steps; s++) {
+          const e = e0 + (e1 - e0) * s / steps;
+          const n = n0 + (n1 - n0) * s / steps;
+          pts.push(new THREE.Vector3(e - m.originE, heightAt(e, n) + 0.35, m.originN - n));
+        }
+      }
+      pts.push(pts[0].clone());
       const geo = new THREE.BufferGeometry().setFromPoints(pts);
       scene.add(new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0xffe95c })));
     }
@@ -232,7 +242,7 @@ scene.add(buildingsGroup);
 let buildingsSource = 'generated';
 
 function normalizeRec(b) {
-  const rec = { overhang: 0, open: false, backWall: null, ...b };
+  const rec = { overhang: 0, open: false, backWall: null, variant: null, ...b };
   if (rec.ridge == null || rec.flat == null) {   // legacy plain-box record
     rec.flat = true;
     rec.ridge = rec.height ?? 2.5;
@@ -409,22 +419,32 @@ async function addBuildings() {
     const have = new Set(list.map(b => String(b.id)));
     const nb = await fetch('web/newbuild.json');
     if (nb.ok) for (const b of await nb.json()) {
+      if (b.variant && !variantList.some(v => v.key === b.variant)) {
+        variantList.push({ key: b.variant, label: b.variantLabel ?? b.variant });
+      }
       if (!have.has(String(b.id))) list.push(b);
     }
   } catch { /* optional */ }
+  if (newVariant && !variantList.some(v => v.key === newVariant)) newVariant = null;
   for (const b of list) makeBuildingGroup(normalizeRec(b));
   applyNewBuild();
   return list.length;
 }
 
-// swap the existing cabin + deck for the new-build concept (and back)
+// swap the existing cabin + deck for a new-build variant (and back)
 function applyNewBuild() {
   for (const group of buildingsGroup.children) {
-    const id = String(group.userData.rec.id);
-    if (OLD_CABIN_IDS.has(id)) group.visible = !newBuildOn;
-    else if (id.startsWith('newbuild:')) group.visible = newBuildOn;
+    const rec = group.userData.rec;
+    const id = String(rec.id);
+    if (OLD_CABIN_IDS.has(id)) group.visible = newVariant === null;
+    else if (id.startsWith('newbuild:')) {
+      group.visible = newVariant !== null && (rec.variant == null || rec.variant === newVariant);
+    }
   }
   if (selected && !selected.visible) select(null);
+  const label = newVariant === null ? 'off'
+    : (variantList.find(v => v.key === newVariant)?.label ?? newVariant);
+  document.getElementById('newb').textContent = `new build: ${label}`;
 }
 
 // -------------------------------------------------- terrain excavation
@@ -725,6 +745,8 @@ function serialize() {
       overhang: +rec.overhang.toFixed(2),
       open: rec.open,
       backWall: rec.backWall,
+      variant: rec.variant ?? null,
+      variantLabel: rec.variantLabel ?? null,
       footprint: rec.footprint,
     };
   });
@@ -867,9 +889,10 @@ document.getElementById('sunhour').addEventListener('input', e => {
   updateSun();
 });
 
-document.getElementById('newb').addEventListener('click', e => {
-  newBuildOn = !newBuildOn;
-  e.target.textContent = `new build: ${newBuildOn ? 'on' : 'off'}`;
+document.getElementById('newb').addEventListener('click', () => {
+  const keys = variantList.map(v => v.key);
+  const i = newVariant === null ? -1 : keys.indexOf(newVariant);
+  newVariant = i + 1 < keys.length ? keys[i + 1] : null;
   applyNewBuild();
   applyExcavation();
   refreshAllLabels();
