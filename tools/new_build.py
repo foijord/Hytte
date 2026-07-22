@@ -329,18 +329,30 @@ def main():
         'C': [(u_sea, -1, -1.6, 5.0, b + 0.5, 1.6, G),
               (u_sea, -1, 2.6, 1.8, b + 0.05, 2.05, G),
               (u_sea + 9.3, 1, 3.0, 0.95, b + 1.02, 2.05, D_)],
-        'E': [(u_sea, -1, -1.4, 4.2, b + 0.5, 1.7, G),
-              (u_sea, -1, 1.9, 1.8, b + 0.05, 2.05, G),
-              (u_sea + 3.07, -1, 0.0, 7.0, b + 5.15, 1.05, G),  # clerestory
-              (u_sea + 7.8, 1, 2.0, 0.95, b + 0.05, 2.05, D_)],
-        'F': [(u_sea, -1, -1.2, 6.0, b + 0.3, 2.2, G),     # funkis glass front
-              (u_sea, -1, 2.6, 1.8, b + 0.05, 2.35, G),
-              (u_sea + 2.03, -1, 0.0, 5.5, b + 2.77 + 0.9, 1.4, G),  # upper band
-              (u_sea + 8.0, 1, 2.2, 0.95, b + 0.05, 2.05, D_)],
+    }
+    # real elevation crops applied as full facade bands (Drommehytten)
+    FACADES = {
+        'E': [(u_sea, -1, 10.3, b, 3.52, 'fac_falstad_sea'),
+              (u_sea + 3.1, -1, 10.3, b + 5.06, 1.50, 'fac_falstad_cler'),
+              (u_sea + 7.8, 1, 10.3, b, 3.44, 'fac_falstad_road')],
+        'F': [(u_sea, -1, 10.4, b, 2.75, 'fac_spang_sea'),
+              (u_sea + 2.03, -1, 10.4, b + 2.79, 2.90, 'fac_spang_upper'),
+              (u_sea + 8.0, 1, 10.4, b, 5.49, 'fac_spang_road')],
     }
     for key, items in OPEN.items():
         if any(r.get('variant') == key and r['type'] == 'cabin' for r in out):
             out += openings(key, items)
+    for key, items in FACADES.items():
+        if not any(r.get('variant') == key and r['type'] == 'cabin' for r in out):
+            continue
+        for i, (u_f, sgn, wdt, sill, hgt, tex_name) in enumerate(items):
+            u_c = u_f + sgn * 0.04
+            eF, nF = to_en(u_c, v_deck)
+            out.append(rec(f'newbuild:{key}:f{i}', eF, nF, 0.08, round(wdt, 2),
+                           sill, hgt, hgt, 0.0, type='facade', flat=True,
+                           overhang=0.0, onParcel=False, noCut=True,
+                           faceTex=f'web/tex/{tex_name}.jpg',
+                           variant=key, variantLabel=None))
 
     tex = {d['key']: (d.get('wallTex'), d.get('roofTex')) for d in DESIGNS}
     for r in out:

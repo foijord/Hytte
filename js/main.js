@@ -251,7 +251,7 @@ let buildingsSource = 'generated';
 function normalizeRec(b) {
   const rec = {
     overhang: 0, open: false, backWall: null, variant: null, mono: false,
-    eave2: null, ridgeOff: 0, noCut: false, ...b,
+    eave2: null, ridgeOff: 0, noCut: false, faceTex: null, ...b,
   };
   if (!Array.isArray(rec.cutExt) || rec.cutExt.length !== 4) rec.cutExt = [0, 0, 0, 0];
   if (rec.ridge == null || rec.flat == null) {   // legacy plain-box record
@@ -269,30 +269,44 @@ function wallColor(rec) {
   if (rec.type === 'slab') return 0xaeb2b5;   // concrete
   if (rec.type === 'glass') return 0x223743;  // glazing
   if (rec.type === 'door') return 0x5d4531;   // wood door
+  if (rec.type === 'facade') return 0xd8d2c8; // elevation-crop panel
   return rec.type === 'deck' ? 0xb5885e : (rec.onParcel ? 0xe8913a : 0x9fb2c4);
 }
 
-// tiled material textures (2 m tiles, meter-space UVs => repeat 0.5)
+// material textures: tiled cladding (2 m tiles, meter UVs => repeat 0.5)
+// or clamped facade crops (stretched over the panel, repeat 1)
 const texCache = new Map();
-function getTex(path) {
-  if (!texCache.has(path)) {
+function getTex(path, clamp = false) {
+  const key = `${path}|${clamp}`;
+  if (!texCache.has(key)) {
     const t = new THREE.TextureLoader().load(path);
     t.colorSpace = THREE.SRGBColorSpace;
-    t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.repeat.set(0.5, 0.5);
-    texCache.set(path, t);
+    if (clamp) {
+      t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+    } else {
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(0.5, 0.5);
+    }
+    texCache.set(key, t);
   }
-  return texCache.get(path);
+  return texCache.get(key);
 }
 
-// planar meter-space UVs so tiled textures work on roofs and boxes
+// planar meter-space UVs so tiled textures work on roofs and boxes;
+// 'wall' uses face normals so box tops get plan-projected planks
 function meterUV(geo, mode) {
   const p = geo.attributes.position;
+  const n = geo.attributes.normal;
   const uv = new Float32Array(p.count * 2);
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-    uv[i * 2] = mode === 'wall' ? x + z : x;
-    uv[i * 2 + 1] = mode === 'wall' ? y : z;
+    if (mode === 'roof' || (n && Math.abs(n.getY(i)) > 0.5)) {
+      uv[i * 2] = x;
+      uv[i * 2 + 1] = z;
+    } else {
+      uv[i * 2] = x + z;
+      uv[i * 2 + 1] = y;
+    }
   }
   geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
 }
@@ -464,8 +478,11 @@ function rebuildBuilding(group) {
     const mat = new THREE.MeshStandardMaterial({
       color, roughness: glassy ? 0.15 : 0.85, metalness: glassy ? 0.4 : 0.0, emissive,
     });
-    if (rec.wallTex && rec.flat) meterUV(geo, 'wall');
-    if (rec.wallTex) {
+    if (rec.faceTex) {                 // elevation crop stretched on the panel
+      mat.map = getTex(rec.faceTex, true);
+      mat.color.setHex(0xffffff);
+    } else if (rec.wallTex) {
+      if (rec.flat) meterUV(geo, 'wall');
       mat.map = getTex(rec.wallTex);
       mat.color.setHex(0xffffff);
     }
