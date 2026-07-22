@@ -267,7 +267,34 @@ function normalizeRec(b) {
 
 function wallColor(rec) {
   if (rec.type === 'slab') return 0xaeb2b5;   // concrete
+  if (rec.type === 'glass') return 0x223743;  // glazing
+  if (rec.type === 'door') return 0x5d4531;   // wood door
   return rec.type === 'deck' ? 0xb5885e : (rec.onParcel ? 0xe8913a : 0x9fb2c4);
+}
+
+// tiled material textures (2 m tiles, meter-space UVs => repeat 0.5)
+const texCache = new Map();
+function getTex(path) {
+  if (!texCache.has(path)) {
+    const t = new THREE.TextureLoader().load(path);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(0.5, 0.5);
+    texCache.set(path, t);
+  }
+  return texCache.get(path);
+}
+
+// planar meter-space UVs so tiled textures work on roofs and boxes
+function meterUV(geo, mode) {
+  const p = geo.attributes.position;
+  const uv = new Float32Array(p.count * 2);
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    uv[i * 2] = mode === 'wall' ? x + z : x;
+    uv[i * 2 + 1] = mode === 'wall' ? y : z;
+  }
+  geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
 }
 
 function pitchDeg(rec, sy = 1, sx = 1, sz = 1) {
@@ -432,9 +459,17 @@ function rebuildBuilding(group) {
       group.add(we);
     }
   } else {
-    const walls = new THREE.Mesh(wallsGeometry(rec), new THREE.MeshStandardMaterial({
-      color, roughness: 0.85, metalness: 0.0, emissive,
-    }));
+    const geo = wallsGeometry(rec);
+    const glassy = rec.type === 'glass';
+    const mat = new THREE.MeshStandardMaterial({
+      color, roughness: glassy ? 0.15 : 0.85, metalness: glassy ? 0.4 : 0.0, emissive,
+    });
+    if (rec.wallTex && rec.flat) meterUV(geo, 'wall');
+    if (rec.wallTex) {
+      mat.map = getTex(rec.wallTex);
+      mat.color.setHex(0xffffff);
+    }
+    const walls = new THREE.Mesh(geo, mat);
     walls.userData.part = true;
     group.add(walls);
     const wallEdges = new THREE.LineSegments(
@@ -446,9 +481,16 @@ function rebuildBuilding(group) {
 
   if (!rec.flat) {
     const roofColor = new THREE.Color(color).multiplyScalar(0.72);
-    const roof = new THREE.Mesh(roofGeometry(rec), new THREE.MeshStandardMaterial({
+    const roofGeo = roofGeometry(rec);
+    const roofMat = new THREE.MeshStandardMaterial({
       color: roofColor, roughness: 0.9, metalness: 0.0, side: THREE.DoubleSide, emissive,
-    }));
+    });
+    if (rec.roofTex) {
+      meterUV(roofGeo, 'roof');
+      roofMat.map = getTex(rec.roofTex);
+      roofMat.color.setHex(0xffffff);
+    }
+    const roof = new THREE.Mesh(roofGeo, roofMat);
     roof.userData.part = true;
     group.add(roof);
     const roofEdges = new THREE.LineSegments(

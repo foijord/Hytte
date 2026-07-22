@@ -23,14 +23,17 @@ ROOT = Path(__file__).resolve().parent.parent
 DESIGNS = [
     dict(key='A', label='Saltdalshytta Frem 80 · 27°',      # saltdalshytta.no/frem-80:
          form='gable', walls_l=11.7, walls_w=6.3,           # BYA 80, BRA 67.5, no hems,
-         pitch=27.0, wall_h=2.90, overhang=0.5),            # monehoyde 4.5
+         pitch=27.0, wall_h=2.90, overhang=0.5,             # monehoyde 4.5
+         wallTex='wall_frem', roofTex='roof_frem'),
     dict(key='B', label='Familiehytta Furutangen 75 · 30°', # BRA 74 + hems ~38,
          form='gable', walls_l=11.15, walls_w=7.6,          # ridge 5.0 / gesims 2.8
-         pitch=30.0, wall_h=2.8, overhang=0.6),
+         pitch=30.0, wall_h=2.8, overhang=0.6,
+         wallTex='wall_furu', roofTex='roof_furu'),
     dict(key='C', label='Saltdalshytta Frem 95 · asym 22°',  # saltdalshytta.no/frem-95 +
          form='asym', depth=9.3, width=9.9, pitch=22.0,     # owner's drawings: BYA 96,
          gesims=2.79, overhang=0.5,                         # BRA 79.2, gesims 2.79 over the
-         step=0.97, mone=4.34, front_depth=3.9),            # local floor BOTH sides, trappet
+         step=0.97, mone=4.34, front_depth=3.9,             # local floor BOTH sides, trappet
+         wallTex='wall_frem', roofTex='roof_frem'),
                                                             # step 0.97; monehoyde 4.34 over
                                                             # the upper floor (drawing)
                                                             # saddle, ridge parallel to the
@@ -41,14 +44,16 @@ DESIGNS.append(
     dict(key='E', label='Drømmehytten Falstad · split roof', # drommehytten.no/hytter/falstad:
          form='split', width=10.3, depth=7.8,               # BYA 81.6 => walls 10.3x7.8; the
          lean_depth=3.1, front_eave=3.52, attach=5.06,      # "storste" 10.8x8.3 is the ROOF
-         high=6.56, back_eave=3.44, overhang=0.25))         # envelope (ov 0.25); gesims
+         high=6.56, back_eave=3.44, overhang=0.25,          # envelope (ov 0.25); gesims
+         wallTex='wall_falstad', roofTex='roof_falstad'))
                                                             # 3.52/6.56 published, attach/back
                                                             # derived
 DESIGNS.append(
     dict(key='F', label='Drømmehytten Spangereid · funkis', # drommehytten.no/hytter/spangereid:
          form='stack', width=10.4, depth=8.0,               # 10.4x8.0 = grunnflate 83.2 =>
          ground_h=2.75, terrace_depth=2.03,                 # true wall dims; terrace 21.1/10.4
-         gesims=5.49, mone=5.94, overhang=0.1))             # = 2.03 deep => upper 55.2 = loft;
+         gesims=5.49, mone=5.94, overhang=0.1,              # = 2.03 deep => upper 55.2 = loft;
+         wallTex='wall_spang', roofTex='roof_spang'))
                                                             # gesims 5.49 / mone 5.94, funkis
 WALLS_L = 11.15            # floor-plan drawing (Furutangen) only
 WALLS_W = 7.6
@@ -298,6 +303,51 @@ def main():
         out += [cabin, slab(cabin, L, W), fit_deck(cabin, W)]
         print(f"  {d['label']}: walls {L}x{W}, high point abs {base + cabin['ridge']:.2f}")
 
+    def openings(key, items):
+        """Window/door records standing 5 cm proud of a wall face.
+        items: (u_face, out_dir, v_off, width, sill_abs, h, kind)."""
+        out_o = []
+        for i, (u_f, sgn, v_off, wdt, sill, hgt, kind) in enumerate(items):
+            u_c = u_f + sgn * 0.04
+            eO, nO = to_en(u_c, v_deck + v_off)
+            out_o.append(rec(f'newbuild:{key}:o{i}', eO, nO, 0.1, round(wdt, 2),
+                             sill, hgt, hgt, 0.0, type=kind, flat=True,
+                             overhang=0.0, onParcel=False, noCut=True,
+                             variant=key, variantLabel=None))
+        return out_o
+
+    G, D_ = 'glass', 'door'
+    b = base
+    OPEN = {
+        'A': [(u_sea, -1, 1.0, 3.0, b + 0.6, 1.5, G),      # sea gable glazing
+              (u_sea, -1, -1.7, 1.7, b + 0.05, 2.05, G),   # sea slider
+              (u_sea + 11.7, 1, 1.5, 0.95, b + 0.05, 2.05, D_)],
+        'B': [(u_sea, -1, 0.9, 3.4, b + 0.5, 1.7, G),
+              (u_sea, -1, -2.2, 1.7, b + 0.05, 2.05, G),
+              (u_sea, -1, 0.0, 1.4, b + 3.0, 0.8, G),      # apex window
+              (u_sea + 11.15, 1, 2.0, 0.95, b + 0.05, 2.05, D_)],
+        'C': [(u_sea, -1, -1.6, 5.0, b + 0.5, 1.6, G),
+              (u_sea, -1, 2.6, 1.8, b + 0.05, 2.05, G),
+              (u_sea + 9.3, 1, 3.0, 0.95, b + 1.02, 2.05, D_)],
+        'E': [(u_sea, -1, -1.4, 4.2, b + 0.5, 1.7, G),
+              (u_sea, -1, 1.9, 1.8, b + 0.05, 2.05, G),
+              (u_sea + 3.07, -1, 0.0, 7.0, b + 5.15, 1.05, G),  # clerestory
+              (u_sea + 7.8, 1, 2.0, 0.95, b + 0.05, 2.05, D_)],
+        'F': [(u_sea, -1, -1.2, 6.0, b + 0.3, 2.2, G),     # funkis glass front
+              (u_sea, -1, 2.6, 1.8, b + 0.05, 2.35, G),
+              (u_sea + 2.03, -1, 0.0, 5.5, b + 2.77 + 0.9, 1.4, G),  # upper band
+              (u_sea + 8.0, 1, 2.2, 0.95, b + 0.05, 2.05, D_)],
+    }
+    for key, items in OPEN.items():
+        if any(r.get('variant') == key and r['type'] == 'cabin' for r in out):
+            out += openings(key, items)
+
+    tex = {d['key']: (d.get('wallTex'), d.get('roofTex')) for d in DESIGNS}
+    for r in out:
+        if r['type'] == 'cabin' and r.get('variant') in tex:
+            wt, rt = tex[r['variant']]
+            if wt: r['wallTex'] = f'web/tex/{wt}.png'
+            if rt: r['roofTex'] = f'web/tex/{rt}.png'
     path = ROOT / 'web' / 'newbuild.json'
     path.write_text(json.dumps(out, indent=1), encoding='utf-8')
     print(f'wrote {path} ({len(out)} records; old cabin ridge abs '
