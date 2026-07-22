@@ -40,6 +40,11 @@ DESIGNS = [
          form='mono', depth=6.7, width=14.7,                # (page titled Nova 120): BYA 117,
          pitch=6.8, high_wall=4.4, overhang=0.5),           # BRA 101, grunnflate 98.4; high
 ]                                                           # wall ESTIMATED (not published)
+DESIGNS.append(
+    dict(key='E', label='Drømmehytten Falstad · split roof', # drommehytten.no/hytter/falstad:
+         form='split', width=10.8, depth=8.3,               # BYA 81.6, BRA 71.8 + loft 38.4,
+         lean_depth=3.3, front_eave=3.52, attach=5.06,      # gesims 3.52 / gesims2 6.56 (page);
+         high=6.56, back_eave=3.44, overhang=0.4))          # attach/back derived ~25/32 deg
 WALLS_L = 11.15            # floor-plan drawing (Furutangen) only
 WALLS_W = 7.6
 PITCH = 30.0
@@ -187,8 +192,46 @@ def main():
                    variant=cabin['variant'], variantLabel=cabin['variantLabel'])
         return [front, back]
 
+    def split_cabin(d):
+        """Falstad-style split roof: front lean-to (low eave toward the sea,
+        rising to a clerestory band) + tall back volume whose mono roof peaks
+        at the clerestory wall (high, sea side) and falls toward the road.
+        Two mono records; the lean-to is rotated 180 so its high edge faces
+        the road."""
+        ov = d['overhang']
+        W, DEP, LD = d['width'], d['depth'], d['lean_depth']
+        key, label = d['key'], d['label']
+        # lean-to: u_sea .. u_sea+LD, high edge at the road side (attach)
+        u_c1 = u_sea - ov + (LD + 2 * ov) / 2
+        e1, n1 = to_en(u_c1, v_deck)
+        lean = rec(f'newbuild:{key}', e1, n1, round(LD + 2 * ov, 2),
+                   round(W + 2 * ov, 2), base,
+                   d['front_eave'], d['attach'], 25.0,
+                   overhang=ov, mono=True, angleDeg=ang + 180,
+                   variant=key, variantLabel=label)
+        # tall volume: u_sea+LD .. u_sea+DEP, high edge at the sea side (clerestory)
+        u_c2 = u_sea + LD - ov + (DEP - LD + 2 * ov) / 2
+        e2, n2 = to_en(u_c2, v_deck)
+        tall = rec(f'newbuild:{key}:tall', e2, n2, round(DEP - LD + 2 * ov, 2),
+                   round(W + 2 * ov, 2), base,
+                   d['back_eave'], d['high'], 32.0,
+                   overhang=ov, mono=True,
+                   variant=key, variantLabel=label)
+        # one slab under the whole footprint
+        eS, nS = to_en(u_sea + DEP / 2, v_deck)
+        sl = rec(f'newbuild:{key}:slab', eS, nS, round(DEP + 0.05, 2),
+                 round(W + 0.05, 2), base - 0.35, 0.35, 0.35, 0.0,
+                 type='slab', flat=True, overhang=0.0, onParcel=False,
+                 variant=key, variantLabel=label)
+        return [lean, tall, sl, fit_deck(lean, W)]
+
     out = []
     for d in DESIGNS:
+        if d.get('form') == 'split':
+            out += split_cabin(d)
+            print(f"  {d['label']}: {d['width']}x{d['depth']}, top abs "
+                  f"{base + d['high']:.2f} (clerestory)")
+            continue
         if d.get('form') == 'asym':
             cabin = asym_cabin(f'newbuild:{d["key"]}', d['key'], d['label'],
                                d['depth'], d['width'], d['pitch'],
